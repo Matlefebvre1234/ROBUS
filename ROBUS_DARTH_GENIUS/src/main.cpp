@@ -12,7 +12,32 @@ void setup()
 {
     BoardInit();
 }
-
+void EncoderReset() {
+  ENCODER_Reset(0);
+  ENCODER_Reset(1);
+}
+int CalculePulsePourCM (double distance_cm) {
+  int nombre_pulse = 3200/24*distance_cm;
+  return nombre_pulse;
+}
+void SelfGauche(int degre) {
+  int nombre_pulse = (degre * (double)41.2526)/2;
+  float vit_motg = -.25;
+  float vit_motd = .25;
+  EncoderReset();
+  MOTOR_SetSpeed(0, vit_motg);
+  MOTOR_SetSpeed(1, vit_motd);
+  while (ENCODER_Read(1) < nombre_pulse)  {  }
+}
+void SelfDroite(int degre) {
+  int nombre_pulse = (degre * (double)41.2526)/2;
+  float vit_motg = .25;
+  float vit_motd = -.25;
+  EncoderReset();
+  MOTOR_SetSpeed(0, vit_motg);
+  MOTOR_SetSpeed(1, vit_motd);
+  while (ENCODER_Read(1) < nombre_pulse)  {  }
+}
 void LigneDroitePID (void)
 {
     int dist_tot = vitesse * nbcycle;
@@ -38,7 +63,6 @@ void LigneDroitePID (void)
     MOTOR_SetSpeed (LEFT, vit_motg);
     MOTOR_SetSpeed (RIGHT, vit_motd);
     dist_reel_tot = dist_reel_tot + (vitesse + ((vitesselu_g - vitesselu_d)/ 2));
-
 }
 void loop()
 {
