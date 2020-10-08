@@ -1,6 +1,6 @@
 #include <Arduino.h>
 #include <LibRobus.h>
-
+// déclaration des variables
 #define PI 3.1416
 int delais = 100;
 int vitesse = 300;
@@ -12,6 +12,12 @@ float derniereValeurLuGPulse = 0;
 int nbcycle = 0;
 float dist_reel_totD = 0;
 float dist_totalG =0 ;
+float dist_reel_totG =0 ;
+float kp = 0.0001;
+float ki = 0.00002;
+float kpB = 0.0004;
+float kiB = 0.00004;
+// déclaration des fonctions
 int dist_reel_totG =0 ;
  float kp = 0.0001;
  float ki = 0.00002;
@@ -23,8 +29,7 @@ void Virage_2roue(float angle);
 void Avancer(float distance);
 void LigneDroitePID2();
 void reinitialiserVariable();
-
-
+// fonction pour reset les variables que nous utilisons pour le PID
 void reinitialiserVariable()
 {
  vit_motd = vit_motd_Origin;
@@ -37,16 +42,17 @@ derniereValeurLuGPulse = 0;
 }
 void setup()
 {
-    
+    // BOILER PLATE SETUP
     BoardInit();
     Serial.begin(9600);
     reinitialiserVariable();
 }
 
-
+// fait avance en ligne droite le robot selon les constantes globales
+// set la vitesse selon le PI.
 void LigneDroitePID2()
 {
-    //roue gauche maitre roue droite esclave
+    // roue gauche maitre roue droite esclave
     float erreurDistanceD;
     float erreurDistanceG;
     float comp;
@@ -65,29 +71,11 @@ void LigneDroitePID2()
     
     erreurDistanceD =  dist_reel_totD- dist_reel_totG;
    
+    // dépendant des robots car elles sont composées de matériaux différents
     //comp = kp * erreurD + ki * erreurDistanceD; // Robot A
     comp = kpB * erreurD + kiB * erreurDistanceD;   //Robot B
 
     vit_motd = vit_motd - comp;
-  
-   /*Serial.print("vitesseLuG = ");
-    Serial.print(vitesseLuG);
-    Serial.print("  vitesseLuD = ");
-    Serial.print(vitesseLuD);
-    Serial.print("  erreurD = ");
-    Serial.print(erreurD);
-    Serial.print("  distTotalG = ");
-    Serial.print(dist_reel_totG);
-    Serial.print("  distReelD = ");
-    Serial.print(dist_reel_totD);
-    Serial.print("  comp = ");
-    Serial.print(comp);
-    Serial.print("  vitesseMotG = ");
-    Serial.print(vit_motg);
-    Serial.print("  vitesseMotD = ");
-    Serial.print(vit_motd);
-    Serial.print("\n");*/
-
     MOTOR_SetSpeed(RIGHT,vit_motd);
     MOTOR_SetSpeed(LEFT,vit_motg);
 
