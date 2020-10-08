@@ -8,18 +8,18 @@ float vit_motg_Origin = 0.35;
 float vit_motd_Origin = 0.35;
 float vit_motd = vit_motd_Origin;
 float vit_motg = vit_motg_Origin;
-float derniereValeurLuG;
+float derniereValeurLuGPulse = 0;
 int nbcycle = 0;
 float dist_reel_totD = 0;
 float dist_totalG =0 ;
-float dist_reel_totG =0 ;
+int dist_reel_totG =0 ;
  float kp = 0.0001;
  float ki = 0.00002;
  float kpB = 0.0004;
  float kiB = 0.00004;
 
-
-
+void Virage_1roue(float angle);
+void Virage_2roue(float angle);
 void Avancer(float distance);
 void LigneDroitePID2();
 void reinitialiserVariable();
@@ -33,16 +33,14 @@ void reinitialiserVariable()
  dist_reel_totD = 0;
  dist_totalG =0 ;
  dist_reel_totG =0 ;
+derniereValeurLuGPulse = 0;
 }
 void setup()
 {
     
     BoardInit();
     Serial.begin(9600);
-    
-    delay(1000);
     reinitialiserVariable();
-    delay(2000);
 }
 
 
@@ -56,7 +54,7 @@ void LigneDroitePID2()
     float vitesseLuD = ENCODER_ReadReset(RIGHT);
     float vitesseLuG = ENCODER_ReadReset(LEFT);
     
-    derniereValeurLuG = vitesseLuG;
+    derniereValeurLuGPulse = vitesseLuG;
    
     delay(delais);
    
@@ -95,33 +93,86 @@ void LigneDroitePID2()
 
 }
 
-void Avancer(float distance)
+void Avancer(int pulse)
 {
-    float distanceParcouru = dist_reel_totG;
-    distanceParcouru = 2*PI *3.81*distanceParcouru/(3200);
-    Serial.print("  distTotalG = ");
-    Serial.print(dist_reel_totG);
-    Serial.print("  distParcouru = ");
-    Serial.print(distanceParcouru);
-    Serial.print("\n");
-    
-    derniereValeurLuG = 2*PI *3.81*derniereValeurLuG/(3200);
-    if(distanceParcouru < distance -derniereValeurLuG)
+    while(dist_reel_totG < pulse - derniereValeurLuGPulse)
     {
+        Serial.println("distance reel total G: " + String(dist_reel_totG));
         LigneDroitePID2();
     }
-    else
-    {
-        MOTOR_SetSpeed(RIGHT,0);
-        MOTOR_SetSpeed(LEFT,0);
-        reinitialiserVariable();
-    }
-    
-
-
+    Serial.println("FIN: " + String(dist_reel_totG));
+    MOTOR_SetSpeed(RIGHT,0);
+    MOTOR_SetSpeed(LEFT,0);
 }
 
+void Virage_1roue(float angle)
+{
+    int direction = 1;
+    if(angle < 0)
+    {
+        direction = -1;
+    } 
+    MOTOR_SetSpeed (RIGHT, 0);
+    ENCODER_Reset(LEFT);
+    ENCODER_Reset(RIGHT);
+    int pulse_afaire = angle*44;
+
+    MOTOR_SetSpeed (LEFT, direction*0.2);
+    while(ENCODER_Read(LEFT) < pulse_afaire)
+    {
+      
+    }
+    Serial.println(ENCODER_Read(LEFT));
+    MOTOR_SetSpeed (LEFT, 0);
+    delay(10);
+    
+}
+
+void Virage_2roue(float angle)
+{
+
+    int direction = 1;
+    if(angle < 0)
+    {
+        direction = -1;
+    } 
+
+    MOTOR_SetSpeed (RIGHT, 0);
+    MOTOR_SetSpeed (LEFT, 0);
+    ENCODER_Reset(LEFT);
+    ENCODER_Reset(RIGHT);
+    int pulse_afaire = abs(angle)*44;
+
+    MOTOR_SetSpeed (LEFT, direction * 0.15);
+    MOTOR_SetSpeed(RIGHT, direction * -0.15);
+    
+    Serial.print("abs_encoder:");
+    Serial.println(abs(ENCODER_Read(LEFT)));
+    Serial.print("pulse_afaire/2");
+    Serial.println(pulse_afaire/2);
+
+    while(abs(ENCODER_Read(LEFT)) < pulse_afaire/2)
+    {
+        Serial.println("here");
+    }
+    Serial.println(ENCODER_Read(LEFT));
+    MOTOR_SetSpeed (LEFT, 0);
+    MOTOR_SetSpeed (RIGHT, 0);
+    delay(10);
+}
+int CmEnPulse (int distance_cm) 
+{
+    int distancePulse = (3200/24*distance_cm);
+    return distancePulse;
+}
 void loop()
 {
-     Avancer(1000);
+    Serial.println("MONCODEulse:");
+    int nmPulse = CmEnPulse(145);
+    Serial.println("nm pulse:" + String(nmPulse));
+    Avancer(nmPulse);
+  //   reinitialiserVariable();
+// Virage_2roue(180);
+  //   Avancer(100);
+     exit(0);
 }
