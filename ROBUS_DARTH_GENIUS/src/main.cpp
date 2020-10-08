@@ -4,8 +4,8 @@
 #define PI 3.1416
 int delais = 100;
 int vitesse = 300;
-float vit_motg_Origin = 0.25;
-float vit_motd_Origin = 0.25;
+float vit_motg_Origin = 0.35;
+float vit_motd_Origin = 0.35;
 float vit_motd = vit_motd_Origin;
 float vit_motg = vit_motg_Origin;
 float derniereValeurLuG;
