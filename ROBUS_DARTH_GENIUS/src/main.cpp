@@ -1,6 +1,6 @@
 #include <Arduino.h>
 #include <LibRobus.h>
-
+// déclaration des variables
 #define PI 3.1416
 int delais = 100;
 int vitesse = 300;
@@ -13,18 +13,15 @@ int nbcycle = 0;
 float dist_reel_totD = 0;
 float dist_totalG =0 ;
 float dist_reel_totG =0 ;
- float kp = 0.0001;
- float ki = 0.00002;
- float kpB = 0.0004;
- float kiB = 0.00004;
-
-
-
+float kp = 0.0001;
+float ki = 0.00002;
+float kpB = 0.0004;
+float kiB = 0.00004;
+// déclaration des fonctions
 void Avancer(float distance);
 void LigneDroitePID2();
 void reinitialiserVariable();
-
-
+// fonction pour reset les variables que nous utilisons pour le PID
 void reinitialiserVariable()
 {
  vit_motd = vit_motd_Origin;
@@ -36,19 +33,19 @@ void reinitialiserVariable()
 }
 void setup()
 {
-    
+    // BOILER PLATE SETUP
     BoardInit();
-    Serial.begin(9600);
-    
+    Serial.begin(9600);    
     delay(1000);
     reinitialiserVariable();
     delay(2000);
 }
 
-
+// fait avance en ligne droite le robot selon les constantes globales
+// set la vitesse selon le PI.
 void LigneDroitePID2()
 {
-    //roue gauche maitre roue droite esclave
+    // roue gauche maitre roue droite esclave
     float erreurDistanceD;
     float erreurDistanceG;
     float comp;
@@ -56,10 +53,8 @@ void LigneDroitePID2()
     float vitesseLuD = ENCODER_ReadReset(RIGHT);
     float vitesseLuG = ENCODER_ReadReset(LEFT);
     
-    derniereValeurLuG = vitesseLuG;
-   
-    delay(delais);
-   
+    derniereValeurLuG = vitesseLuG;   
+    delay(delais);   
     float erreurD = vitesseLuD - vitesseLuG;
     dist_totalG += vitesseLuG;
     dist_reel_totD += vitesseLuD;
@@ -67,34 +62,16 @@ void LigneDroitePID2()
     
     erreurDistanceD =  dist_reel_totD- dist_reel_totG;
    
+    // dépendant des robots car elles sont composées de matériaux différents
     //comp = kp * erreurD + ki * erreurDistanceD; // Robot A
     comp = kpB * erreurD + kiB * erreurDistanceD;   //Robot B
 
     vit_motd = vit_motd - comp;
-  
-   /*Serial.print("vitesseLuG = ");
-    Serial.print(vitesseLuG);
-    Serial.print("  vitesseLuD = ");
-    Serial.print(vitesseLuD);
-    Serial.print("  erreurD = ");
-    Serial.print(erreurD);
-    Serial.print("  distTotalG = ");
-    Serial.print(dist_reel_totG);
-    Serial.print("  distReelD = ");
-    Serial.print(dist_reel_totD);
-    Serial.print("  comp = ");
-    Serial.print(comp);
-    Serial.print("  vitesseMotG = ");
-    Serial.print(vit_motg);
-    Serial.print("  vitesseMotD = ");
-    Serial.print(vit_motd);
-    Serial.print("\n");*/
-
     MOTOR_SetSpeed(RIGHT,vit_motd);
     MOTOR_SetSpeed(LEFT,vit_motg);
 
 }
-
+// fait avancer le robot pour une (distance) en appellant la fonction LigneDroitePID2
 void Avancer(float distance)
 {
     float distanceParcouru = dist_reel_totG;
@@ -103,25 +80,26 @@ void Avancer(float distance)
     Serial.print(dist_reel_totG);
     Serial.print("  distParcouru = ");
     Serial.print(distanceParcouru);
-    Serial.print("\n");
-    
+    Serial.print("\n");    
     derniereValeurLuG = 2*PI *3.81*derniereValeurLuG/(3200);
+    // TANT que la distance parcouru est plus petite que la distance a parcourir moins que la derniere valeur lue
+    // appel de la fonction ligne droite.
     if(distanceParcouru < distance -derniereValeurLuG)
     {
         LigneDroitePID2();
     }
     else
     {
+        // arrête le robot suite que la distance voulue a été
+        // parcourue
         MOTOR_SetSpeed(RIGHT,0);
         MOTOR_SetSpeed(LEFT,0);
         reinitialiserVariable();
     }
-    
-
-
 }
 
 void loop()
 {
-     Avancer(1000);
+    // avancer le robot pour 1000 cm
+    Avancer(1000);
 }
