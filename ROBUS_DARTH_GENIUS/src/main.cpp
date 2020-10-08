@@ -8,6 +8,7 @@ float vit_motd = 0.5;
 int nbcycle = 0;
 int dist_reel_tot = 0;
 
+
 void setup()
 {
     BoardInit();
