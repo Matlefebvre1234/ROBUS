@@ -62,7 +62,6 @@ void LigneDroitePID2()
    
     float erreurD = vitesseLuD - vitesseLuG;
     dist_totalG += vitesseLuG;
-    dist_theorique += vitesse;
     dist_reel_totD += vitesseLuD;
     dist_reel_totG += vitesseLuG;
     
