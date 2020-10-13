@@ -102,8 +102,7 @@ void LigneDroitePID2()
     g_vit_motd = g_vit_motd - direction_droite*(comp_d/2);
     g_vit_motg = g_vit_motg - direction_gauche*(comp_g/2);
     // FIN NOUVEAU
-    Serial.println("compatation is: " + String(comp_d) + " vitesse droite: " + String(g_vit_motd));
-    Serial.println("compatation is: " + String(comp_g) + " vitesse gauche: " + String(g_vit_motg));
+    delay(10);
     MOTOR_SetSpeed(RIGHT,g_vit_motd);
     MOTOR_SetSpeed(LEFT,g_vit_motg);
 }
@@ -125,7 +124,6 @@ void Avancer(int pulse)
             speed_acc_g = g_vit_motg*g_vit_Acc;
             g_vit_motd = g_vit_motd + speed_acc_d;
             g_vit_motg = g_vit_motg + speed_acc_g;
-            Serial.println(g_vit_motg);
         } else if(!changed_dec && g_dist_reel_totG >= deceleration) {
             changed_dec = true;
             g_vit_motd = g_vit_motd - speed_acc_d;
@@ -245,9 +243,9 @@ void Virage_2roue(float angle)
     Serial.println(pulse_erreur);
     if(pulse_erreur != 0){
         MOTOR_SetSpeed(roue_maitre, -0.35);
-        delay(50);
+        pulse_erreur = abs(pulse_erreur) * 2;
         ENCODER_Reset(roue_maitre);
-        while (abs(ENCODER_Read(roue_maitre)) < abs(pulse_erreur))
+        while (abs(ENCODER_Read(roue_maitre)) < pulse_erreur)
         {
             Serial.println(abs(ENCODER_Read(roue_maitre)));
         }
