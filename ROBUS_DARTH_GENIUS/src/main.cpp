@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include <LibRobus.h>
+
 // déclaration des variables
 #define RAYON 9.5 //rayon entre les deux roues en cm
 #define PI 3.1416
@@ -11,8 +12,9 @@
 #define kiB 0.00004
 
 // définition des variables de vitesse pour Robus
-float g_vit_motg_Origin = 0.45;
-float g_vit_motd_Origin = 0.45;
+float g_vit_motg_Origin = 0.35;
+float g_vit_motd_Origin = 0.35;
+float g_vit_Acc = .75;
 float g_vit_motd = g_vit_motd_Origin;
 float g_vit_motg = g_vit_motg_Origin;
 
@@ -22,6 +24,7 @@ int g_pulse_derniere_valeurLu_g = 0;
 int g_dist_reel_totD = 0;
 int g_dist_totalG = 0 ;
 int gt_dist_total_reelG_D[2] = {0,0};
+int gt_derniere_lu_G_D[2] = {0,0};
 int g_dist_reel_totG = 0 ;
 int g_step = 0; 
 
@@ -48,8 +51,10 @@ void reinitialiserVariable()
     g_dist_totalG = 0;
     g_dist_reel_totG = 0;
     g_pulse_derniere_valeurLu_g = 0;
-    gt_dist_total_reelG_D[LEFT] = {0};
-    gt_dist_total_reelG_D[RIGHT] = {0};
+    gt_dist_total_reelG_D[LEFT] = 0;
+    gt_dist_total_reelG_D[RIGHT] = 0;
+    gt_derniere_lu_G_D[LEFT] = 0;
+    gt_derniere_lu_G_D[RIGHT] = 0;
     g_direction = 1;
     ENCODER_Reset(LEFT);
     ENCODER_Reset(RIGHT);
@@ -70,12 +75,14 @@ void LigneDroitePID2()
     
     // ajout au total calculé en référence à la dernière réinitiliasation des variables
     g_pulse_derniere_valeurLu_g = vitesseLuG;
+    gt_derniere_lu_G_D[LEFT] = vitesseLuG;
+    gt_derniere_lu_G_D[RIGHT] = vitesseLuD;
     g_dist_totalG += vitesseLuG;
-    gt_dist_total_reelG_D[RIGHT] += vitesseLuD; 
+    gt_dist_total_reelG_D[RIGHT] += vitesseLuD;
     gt_dist_total_reelG_D[LEFT] += vitesseLuG;
     g_dist_reel_totD += vitesseLuD;
     g_dist_reel_totG += vitesseLuG;
-
+    // NOUVEAU
     // trouve la direction vers la roue tourne pour chacune ( avant positif, arière négatif)
     int direction_droite = g_vit_motd > 0 ? 1 : -1;        
     int direction_gauche = g_vit_motg > 0 ? 1 : -1;
@@ -88,12 +95,13 @@ void LigneDroitePID2()
 
     // dépendant des robots car elles sont composées de matériaux différents,
     // calcule de la compatation pour chacune des roues.
-    //comp = kp * erreurD + ki * erreurDistanceD; // Robot A
-    comp_d = kpB * erreurD + kiB * erreurDistanceD;   //Robot B
-    comp_g = kpB * erreurG + kiB * erreurDistanceG;
+    comp_d = kp * erreurD + ki * erreurDistanceD; // Robot A
+     comp_g = kp * erreurG + ki * erreurDistanceG;
+  //  comp_d = kpB * erreurD + kiB * erreurDistanceD;   //Robot B
+  //  comp_g = kpB * erreurG + kiB * erreurDistanceG;
     g_vit_motd = g_vit_motd - direction_droite*(comp_d/2);
     g_vit_motg = g_vit_motg - direction_gauche*(comp_g/2);
-
+    // FIN NOUVEAU
     Serial.println("compatation is: " + String(comp_d) + " vitesse droite: " + String(g_vit_motd));
     Serial.println("compatation is: " + String(comp_g) + " vitesse gauche: " + String(g_vit_motg));
     MOTOR_SetSpeed(RIGHT,g_vit_motd);
@@ -102,14 +110,34 @@ void LigneDroitePID2()
 // fait avancer Robus pour le nombre de pulse passé en variable.
 void Avancer(int pulse)
 {
-    int deceleration = pulse - (pulse * .1); 
+    float deceleration = pulse - (pulse * .2); 
+    float acceleration = pulse * .1;
+    float speed_acc_d;
+    float speed_acc_g;
+    bool changed_dec = false;
+    bool changed_acc = false;
     while(g_dist_reel_totG < pulse - g_pulse_derniere_valeurLu_g)
     {
+        // NOUVEAU
+        if(!changed_acc && g_dist_reel_totG >= acceleration) {
+            changed_acc = true;
+            speed_acc_d = g_vit_motd*g_vit_Acc;
+            speed_acc_g = g_vit_motg*g_vit_Acc;
+            g_vit_motd = g_vit_motd + speed_acc_d;
+            g_vit_motg = g_vit_motg + speed_acc_g;
+            Serial.println(g_vit_motg);
+        } else if(!changed_dec && g_dist_reel_totG >= deceleration) {
+            changed_dec = true;
+            g_vit_motd = g_vit_motd - speed_acc_d;
+            g_vit_motg = g_vit_motg - speed_acc_g;
+        }
+        // FIN NOUVEAU
         LigneDroitePID2();
     }
     MOTOR_SetSpeed(RIGHT,0);
     MOTOR_SetSpeed(LEFT,0);
 }
+// fonction TOURNER, les COOL
 bool Tourner(float degre)
 {
     float arc = (degre*PI*RAYON)/180;
@@ -172,11 +200,11 @@ void Virage_2roue(float angle)
 {
     // la roue maître est celle qui fait une rotation au sens horaire d'une montre (va vers l'avant)
     int g_direction = 1;
-    int roue_maitre = RIGHT;
+    int roue_maitre = LEFT;
     if(angle < 0)
     {
         g_direction = -1;
-        roue_maitre = LEFT;
+        roue_maitre = RIGHT;
     }
 
     // arrête Robus et remets à zéro les encodeurs.
@@ -187,30 +215,44 @@ void Virage_2roue(float angle)
 
     // calcul du nombre de pulse à faire selon un chiffre magique.
     // et la variable global de direction défini la roue allant vers l'avant et la roue allant vers l'arrière.
-    float arc = (angle*PI*RAYON)/180;
+    float arc = (abs(angle)*PI*RAYON)/180;
     int pulse_distribution = (arc*3200.0)/23.88;
 
     g_vit_motd = g_direction * -0.15;
     g_vit_motg = g_direction * 0.15;
     
-    Serial.print("Encodeur de la roue allant vers l'avant (" + roue_maitre + "): ");
+    Serial.print("Encodeur de la roue allant vers l'avant (" + String(roue_maitre) + "): ");
     Serial.println(abs(ENCODER_Read(roue_maitre)));
     Serial.print("Nombre de pulse pour chaque roue: ");
     Serial.println(pulse_distribution);
 
     // tant que l'encodeur de la roue maître est plus petite que le pulse cible moins la dernière valeur lue pour
     // la roue maître.
-    while(abs(ENCODER_Read(roue_maitre)) < pulse_distribution - abs(gt_dist_total_reelG_D[roue_maitre]))
+    while(abs(gt_dist_total_reelG_D[roue_maitre]) < pulse_distribution - abs(gt_derniere_lu_G_D[roue_maitre]))
     {
         // appel de la fonction qui avance Robus et rafraichit les variables avec lesquelles Robus
         // peut ajuster ses deux roues pour tourner avec la précision que la fonction lui permet.
         LigneDroitePID2();
     }
-    Serial.println(ENCODER_Read(roue_maitre));
-
-    // arrête Robus.
     MOTOR_SetSpeed (LEFT, 0);
     MOTOR_SetSpeed (RIGHT, 0);
+    delay(500);
+    Serial.println(pulse_distribution);
+    Serial.println(gt_dist_total_reelG_D[roue_maitre]);
+    Serial.println(gt_derniere_lu_G_D[roue_maitre]);
+
+    int pulse_erreur = pulse_distribution - abs(gt_dist_total_reelG_D[roue_maitre]) - abs(gt_derniere_lu_G_D[roue_maitre]);
+    Serial.println(pulse_erreur);
+    if(pulse_erreur != 0){
+        MOTOR_SetSpeed(roue_maitre, -0.35);
+        delay(50);
+        ENCODER_Reset(roue_maitre);
+        while (abs(ENCODER_Read(roue_maitre)) < abs(pulse_erreur))
+        {
+            Serial.println(abs(ENCODER_Read(roue_maitre)));
+        }
+        MOTOR_SetSpeed (roue_maitre, 0);
+    }
 }
 // converti les centimètres en pulse à faire pour Robus
 int CmEnPulse (int distance_cm) 
@@ -218,19 +260,20 @@ int CmEnPulse (int distance_cm)
     int distancePulse = (3200/23.9389*distance_cm);
     return distancePulse;
 }
+// main loop faisant le circuit
 void loop()
 {    
     int instructions[11][2] = {
-        {125, FRONT},
+        {128, FRONT},
         {-90, TURN},
-        {90, FRONT},
+        {94, FRONT},
         {90, TURN},
-        {90, FRONT},
-        {45, TURN},
-        {200, FRONT},
+        {85, FRONT},
+        {50, TURN},
+        {185, FRONT},
         {-90, TURN},
-        {64, FRONT},
-        {45, TURN},
+        {60, FRONT},
+        {48, TURN},
         {100, FRONT}
     };
     for (size_t i = 0; i < 11; i++)
@@ -243,14 +286,14 @@ void loop()
         case FRONT:
             Serial.println("front");
             Avancer(CmEnPulse(distance_degre));
-            delay(10);
+            delay(50);
             break;
         
         case TURN:
             Serial.println("turn");
             instructions[i][0] = -distance_degre;
             Virage_2roue(distance_degre);
-            delay(10);
+            delay(50);
             break;
         }
     }
