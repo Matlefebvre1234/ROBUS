@@ -1,13 +1,28 @@
 #include <Arduino.h>
 #include <LibRobus.h>
+/////////////////////////////////////////////////////////////////////
+//
+// POUR le fonctionnement du robot A et B
+// vitesse pour le robot B a .50
+// vitesse pour le robot A a .70 - .75
+// angle positive doit etre mise plus grande pour le robot B
+// changement du PID
+//
+//  -cheers
+//
+/////////////////////////////////////////////////////////////////////
 // déclaration des variables
 #define PI 3.1416
 #define FRONT 0
 #define TURN 1
 int g_direction = 1;
 int vitesse = 300;
-float g_vit_motg_Origin = 0.70;
-float g_vit_motd_Origin = 0.70;
+
+// VITESSE pour le robot B a .50
+// VITESSE pour le robot A a .70 - .75
+float g_vit_motg_Origin = 0.50;
+float g_vit_motd_Origin = 0.50;
+
 float g_vit_motd = g_vit_motd_Origin;
 float g_vit_motg = g_vit_motg_Origin;
 float derniereValeurLuGPulse = 0;
@@ -16,8 +31,9 @@ float dist_reel_totD = 0;
 float dist_totalG =0 ;
 int gt_dist_total_reelG_D[2] = {0,0};
 int gt_derniere_lu_G_D[2] = {0,0};
+
 // déclaration des fonctions
-int dist_reel_totG =0 ;
+int dist_reel_totG = 0;
 float kp = 0.0002;
 float ki = 0.00004;
 float kpB = 0.0004;
@@ -28,6 +44,7 @@ void Virage_2roue(float angle);
 void Avancer(float distance);
 void LigneDroitePID2();
 void reinitialiserVariable();
+
 // fonction pour reset les variables que nous utilisons pour le PID
 void reinitialiserVariable()
 {
@@ -46,7 +63,6 @@ void reinitialiserVariable()
 }
 void setup()
 {
-    // BOILER PLATE SETUP
     BoardInit();
     Serial.begin(9600);
     reinitialiserVariable();
@@ -89,12 +105,18 @@ void LigneDroitePID2()
 
     // dépendant des robots car elles sont composées de matériaux différents,
     // calcule de la compatation pour chacune des roues.
-    comp_d = kp * erreurD + ki * erreurDistanceD; // Robot A
-    comp_g = kp * erreurG + ki * erreurDistanceG;
-    //  comp_d = kpB * erreurD + kiB * erreurDistanceD;   //Robot B
-    //  comp_g = kpB * erreurG + kiB * erreurDistanceG;
+    
+    //comp_d = kp * erreurD + ki * erreurDistanceD; // Robot A
+    //comp_g = kp * erreurG + ki * erreurDistanceG;
+    comp_d = kpB * erreurD + kiB * erreurDistanceD;   //Robot B
+    comp_g = kpB * erreurG + kiB * erreurDistanceG;
+    
+    // FIN de la dependance pour PID
+
     g_vit_motd = g_vit_motd - direction_droite*(comp_d/2);
     g_vit_motg = g_vit_motg - direction_gauche*(comp_g/2);
+
+
     // FIN NOUVEAU
     delay(50);
     MOTOR_SetSpeed(RIGHT,g_vit_motd);
@@ -114,7 +136,6 @@ void Avancer(int pulse)
     acceleration_v = (g_vit_motg_Origin - g_vit_motd)/n_pulse_bar;
     Serial.println("DÉBUT: " + String(pulse));
     LigneDroitePID2();
-    delay(250);
     while(dist_reel_totG < pulse - derniereValeurLuGPulse)
     {
         // acceleration du début
@@ -207,18 +228,31 @@ void Virage_2roue(float angle)
     Serial.println(pulse_distribution);
     Serial.println(gt_dist_total_reelG_D[roue_maitre]);
     Serial.println(gt_derniere_lu_G_D[roue_maitre]);
+
     // CORRECTION D'ERREUR
-    int pulse_erreur = pulse_distribution - abs(gt_dist_total_reelG_D[roue_maitre]) - abs(gt_derniere_lu_G_D[roue_maitre]);
-    if(pulse_erreur != 0){
-        MOTOR_SetSpeed(roue_maitre, -0.35);
-        pulse_erreur = abs(pulse_erreur) * 2;
-        ENCODER_Reset(roue_maitre);
-        while (abs(ENCODER_Read(roue_maitre)) < pulse_erreur)
+    int pulse_erreur_g = pulse_distribution - abs(gt_dist_total_reelG_D[LEFT]) - abs(gt_derniere_lu_G_D[LEFT]);
+    int pulse_erreur_d= pulse_distribution - abs(gt_dist_total_reelG_D[RIGHT]) - abs(gt_derniere_lu_G_D[RIGHT]);
+    if(pulse_erreur_g != 0){
+        MOTOR_SetSpeed(LEFT, (roue_maitre == LEFT ? -.35: .35));
+        pulse_erreur_g = abs(pulse_erreur_g) * 2;
+        ENCODER_Reset(LEFT);
+        while (abs(ENCODER_Read(LEFT)) < pulse_erreur_g)
         {
-            Serial.println(abs(ENCODER_Read(roue_maitre)));
+            Serial.println(abs(ENCODER_Read(LEFT)));
         }
-        MOTOR_SetSpeed (roue_maitre, 0);
+        MOTOR_SetSpeed (LEFT, 0);
     }
+    if(pulse_erreur_d != 0){
+        MOTOR_SetSpeed(RIGHT, (roue_maitre == RIGHT ? -.35: .35));
+        pulse_erreur_d = abs(pulse_erreur_d) * 2;
+        ENCODER_Reset(RIGHT);
+        while (abs(ENCODER_Read(RIGHT)) < pulse_erreur_d)
+        {
+            Serial.println(abs(ENCODER_Read(RIGHT)));
+        }
+        MOTOR_SetSpeed (RIGHT, 0);
+    }
+    // FIN DE correction derreur
 }
 int CmEnPulse (int distance_cm) 
 {
@@ -226,20 +260,26 @@ int CmEnPulse (int distance_cm)
     return distancePulse;
 }
 void loop()
-{    
+{   
+    // angle positive doit etre mise plus grande pour le robot B
+    // ROBOT B pour +40 doit +45
+    // ROBOT B pour +180 doit +190
+    // ROBOT B pour +100 doit +106
     int instructions[11][2] = {
         {125, FRONT},
         {-90, TURN},
         {90, FRONT},
-        {90, TURN},
+        {95, TURN},
         {90, FRONT},
-        {40, TURN},
+        {45, TURN},
         {190, FRONT},
         {-90, TURN},
         {64, FRONT},
         {45, TURN},
         {100, FRONT}
     };
+
+    // POUR i plus petit nombre de ligne dans la table
     for (size_t i = 0; i < 11; i++)
     {
         reinitialiserVariable();
@@ -261,10 +301,16 @@ void loop()
             break;
         }
     }
+    // FIN de la loop for
+
+    // RETOUR angle positive ROBOT B doit etre 190
     reinitialiserVariable();
     delay(100);
-    Virage_2roue(180);
+    Virage_2roue(190);
     delay(10);
+    // FIN RETOUR
+
+    // POUR Y plus grand ou egale au nombre de ligne dans la table
     for (int Y = 10; Y >= 0; Y--)
     {
         reinitialiserVariable();
@@ -285,5 +331,7 @@ void loop()
             break;
         }
     }
+    // FIN de la loop for du retour
+
     exit(0);
 }
