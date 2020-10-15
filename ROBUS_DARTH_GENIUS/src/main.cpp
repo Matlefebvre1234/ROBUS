@@ -19,9 +19,9 @@ int g_direction = 1;
 int vitesse = 300;
 
 // VITESSE pour le robot B a .50
-// VITESSE pour le robot A a .70 - .75
-float g_vit_motg_Origin = 0.50;
-float g_vit_motd_Origin = 0.50;
+// VITESSE pour le robot A a .66 - .75
+float g_vit_motg_Origin = 0.66;
+float g_vit_motd_Origin = 0.66;
 
 float g_vit_motd = g_vit_motd_Origin;
 float g_vit_motg = g_vit_motg_Origin;
@@ -31,13 +31,15 @@ float dist_reel_totD = 0;
 float dist_totalG =0 ;
 int gt_dist_total_reelG_D[2] = {0,0};
 int gt_derniere_lu_G_D[2] = {0,0};
-
-// déclaration des fonctions
 int dist_reel_totG = 0;
+
+// déclaration des PID
 float kp = 0.0002;
 float ki = 0.00004;
-float kpB = 0.0004;
-float kiB = 0.00004;
+float kpB_Origine = 0.0004;
+float kiB_Origine = 0.00004;
+float kpB = kpB_Origine;
+float kiB = kiB_Origine;
 
 void Virage_1roue(float angle);
 void Virage_2roue(float angle);
@@ -50,6 +52,8 @@ void reinitialiserVariable()
 {
     g_vit_motd = g_vit_motd_Origin;
     g_vit_motg = g_vit_motg_Origin;
+    kpB = kpB_Origine;
+    kiB = kiB_Origine;
     nbcycle = 0;
     dist_reel_totD = 0;
     dist_totalG = 0;
@@ -106,13 +110,12 @@ void LigneDroitePID2()
     // dépendant des robots car elles sont composées de matériaux différents,
     // calcule de la compatation pour chacune des roues.
     
-    //comp_d = kp * erreurD + ki * erreurDistanceD; // Robot A
-    //comp_g = kp * erreurG + ki * erreurDistanceG;
-    comp_d = kpB * erreurD + kiB * erreurDistanceD;   //Robot B
-    comp_g = kpB * erreurG + kiB * erreurDistanceG;
+    comp_d = kp * erreurD + ki * erreurDistanceD; // Robot A
+    comp_g = kp * erreurG + ki * erreurDistanceG;
+    //comp_d = kpB * erreurD + kiB * erreurDistanceD;   //Robot B
+    //comp_g = kpB * erreurG + kiB * erreurDistanceG;
     
     // FIN de la dependance pour PID
-
     g_vit_motd = g_vit_motd - direction_droite*(comp_d/2);
     g_vit_motg = g_vit_motg - direction_gauche*(comp_g/2);
 
@@ -155,8 +158,8 @@ void Avancer(int pulse)
         //decceleration
         if(pulse - dist_reel_totG < n_pulse_bar & g_vit_motd > 0.1 && g_vit_motd > 0.1)
         {
-            g_vit_motg -= acceleration_v*gt_derniere_lu_G_D[LEFT];
-            g_vit_motd -= acceleration_v*gt_derniere_lu_G_D[RIGHT];
+            g_vit_motg -= acceleration_v*gt_derniere_lu_G_D[LEFT]*1.01;
+            g_vit_motd -= acceleration_v*gt_derniere_lu_G_D[RIGHT]*1.01;
             Serial.println("distance reel total G: " + String(dist_reel_totG));
             LigneDroitePID2();
         }
@@ -232,18 +235,8 @@ void Virage_2roue(float angle)
     // CORRECTION D'ERREUR
     int pulse_erreur_g = pulse_distribution - abs(gt_dist_total_reelG_D[LEFT]) - abs(gt_derniere_lu_G_D[LEFT]);
     int pulse_erreur_d= pulse_distribution - abs(gt_dist_total_reelG_D[RIGHT]) - abs(gt_derniere_lu_G_D[RIGHT]);
-    if(pulse_erreur_g != 0){
-        MOTOR_SetSpeed(LEFT, (roue_maitre == LEFT ? -.35: .35));
-        pulse_erreur_g = abs(pulse_erreur_g) * 2;
-        ENCODER_Reset(LEFT);
-        while (abs(ENCODER_Read(LEFT)) < pulse_erreur_g)
-        {
-            Serial.println(abs(ENCODER_Read(LEFT)));
-        }
-        MOTOR_SetSpeed (LEFT, 0);
-    }
     if(pulse_erreur_d != 0){
-        MOTOR_SetSpeed(RIGHT, (roue_maitre == RIGHT ? -.35: .35));
+        MOTOR_SetSpeed(RIGHT, (roue_maitre == RIGHT ? -.30: .30));
         pulse_erreur_d = abs(pulse_erreur_d) * 2;
         ENCODER_Reset(RIGHT);
         while (abs(ENCODER_Read(RIGHT)) < pulse_erreur_d)
@@ -260,25 +253,38 @@ int CmEnPulse (int distance_cm)
     return distancePulse;
 }
 void loop()
-{   
+{
+    ///////////////////////////////////////////////////////////////
     // angle positive doit etre mise plus grande pour le robot B
-    // ROBOT B pour +40 doit +45
-    // ROBOT B pour +180 doit +190
-    // ROBOT B pour +100 doit +106
+    //
+    // ROBOT B pour (+) 10 doit     (+) 10
+    // ROBOT B pour (+) 15 doit     (+) 18
+    // ROBOT B pour (+) 40 doit     (+) 45
+    // ROBOT B pour (+) 45 doit     (+) 47.5
+    // ROBOT B pour (+) 90 doit     (+) 95
+    // ROBOT B pour (+) 180 doit    (+) 190
+    // ROBOT B pour (+) 100 doit    (+) 106
+    //
+    ///////////////////////////////////////////////////////////////
+    //
+    // RETOUR angle positive ROBOT B doit etre 190
+    //
+    int ang_retour = 180;
+    ///
+    // INSTRUCTIONS
     int instructions[11][2] = {
         {125, FRONT},
         {-90, TURN},
         {90, FRONT},
-        {95, TURN},
+        {90, TURN},
         {90, FRONT},
         {45, TURN},
         {190, FRONT},
         {-90, TURN},
         {64, FRONT},
-        {45, TURN},
+        {40, TURN},
         {100, FRONT}
     };
-
     // POUR i plus petit nombre de ligne dans la table
     for (size_t i = 0; i < 11; i++)
     {
@@ -301,12 +307,11 @@ void loop()
             break;
         }
     }
-    // FIN de la loop for
 
-    // RETOUR angle positive ROBOT B doit etre 190
+    // FIN de la loop for
     reinitialiserVariable();
-    delay(100);
-    Virage_2roue(190);
+    delay(200);
+    Virage_2roue(ang_retour);
     delay(10);
     // FIN RETOUR
 
@@ -332,6 +337,5 @@ void loop()
         }
     }
     // FIN de la loop for du retour
-
     exit(0);
 }
