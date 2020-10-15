@@ -46,6 +46,9 @@ void Virage_2roue(float angle);
 void Avancer(float distance);
 void LigneDroitePID2();
 void reinitialiserVariable();
+int CmEnPulse (int distance_cm);
+
+
 
 // fonction pour reset les variables que nous utilisons pour le PID
 void reinitialiserVariable()
@@ -122,6 +125,7 @@ void LigneDroitePID2()
 
     // FIN NOUVEAU
     delay(50);
+
     MOTOR_SetSpeed(RIGHT,g_vit_motd);
     MOTOR_SetSpeed(LEFT,g_vit_motg);
 }
@@ -130,25 +134,31 @@ void Avancer(int pulse)
 {
     int deceleration = pulse - (pulse * 0.1);
     float acceleration_v;
+    float v_max = g_vit_motg_Origin;
     float n_pulse_bar = 4200;
     bool accel = true;
 
 
     g_vit_motd = 0.22;
     g_vit_motg = 0.22;
-    acceleration_v = (g_vit_motg_Origin - g_vit_motd)/n_pulse_bar;
+
+    if(pulse <= CmEnPulse(60)) {
+        v_max = .30;
+    }
+
+    acceleration_v = (v_max - g_vit_motd)/n_pulse_bar;
     Serial.println("DÉBUT: " + String(pulse));
     LigneDroitePID2();
     while(dist_reel_totG < pulse - derniereValeurLuGPulse)
     {
         // acceleration du début
-        if (g_vit_motg < g_vit_motg_Origin && accel == true)
+        if (g_vit_motg < v_max && accel == true)
             g_vit_motg += acceleration_v*gt_derniere_lu_G_D[LEFT];
         else
         {
             accel = false;
         }
-        if (g_vit_motd < g_vit_motd_Origin && accel == true)
+        if (g_vit_motd < v_max && accel == true)
             g_vit_motd += acceleration_v*gt_derniere_lu_G_D[RIGHT];
         else
         {
@@ -269,24 +279,41 @@ void loop()
     //
     // RETOUR angle positive ROBOT B doit etre 190
     //
-    int ang_retour = 180;
+    int ang_retour = -180;
     ///
     // INSTRUCTIONS
-    int instructions[11][2] = {
+    int instructions[13][2] = {
         {125, FRONT},
         {-90, TURN},
-        {90, FRONT},
+        {105, FRONT},
         {90, TURN},
-        {90, FRONT},
-        {45, TURN},
-        {190, FRONT},
+        {46, FRONT},
+        {90, TURN},
+        {58, FRONT},
         {-90, TURN},
-        {64, FRONT},
-        {40, TURN},
-        {100, FRONT}
+        {205, FRONT},
+        {90, TURN},
+        {50, FRONT},
+        {-89, TURN},
+        {130, FRONT}
+
     };
+    /*
+    {125, FRONT},
+        {-90, TURN},
+        {105, FRONT},
+        {90, TURN},
+        {46, FRONT},
+        {90, TURN},
+        {54, FRONT},
+        {-90, TURN},
+        {205, FRONT},
+        {90, TURN},
+        {48, FRONT},
+        {-90, TURN},
+        {124, FRONT} */
     // POUR i plus petit nombre de ligne dans la table
-    for (size_t i = 0; i < 11; i++)
+    for (size_t i = 0; i < 13; i++)
     {
         reinitialiserVariable();
         int distance_degre = instructions[i][0];
@@ -316,7 +343,7 @@ void loop()
     // FIN RETOUR
 
     // POUR Y plus grand ou egale au nombre de ligne dans la table
-    for (int Y = 10; Y >= 0; Y--)
+    for (int Y = 12; Y >= 0; Y--)
     {
         reinitialiserVariable();
         int distance_degre = instructions[Y][0];
