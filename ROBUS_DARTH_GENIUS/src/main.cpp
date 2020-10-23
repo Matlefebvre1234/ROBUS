@@ -22,16 +22,15 @@ int vitesse = 300;
 // VITESSE pour le robot A a .66 - .75
 float g_vit_motg_Origin = 0.66;
 float g_vit_motd_Origin = 0.66;
-
 float g_vit_motd = g_vit_motd_Origin;
 float g_vit_motg = g_vit_motg_Origin;
-float derniereValeurLuGPulse = 0;
 int nbcycle = 0;
 float dist_reel_totD = 0;
 float dist_totalG =0 ;
+int dist_reel_totG = 0;
+float derniereValeurLuGPulse = 0;
 int gt_dist_total_reelG_D[2] = {0,0};
 int gt_derniere_lu_G_D[2] = {0,0};
-int dist_reel_totG = 0;
 
 // déclaration des PID
 float kp = 0.0002;
@@ -59,8 +58,8 @@ void reinitialiserVariable()
     kiB = kiB_Origine;
     nbcycle = 0;
     dist_reel_totD = 0;
-    dist_totalG = 0;
     dist_reel_totG = 0 ;
+    dist_totalG = 0;
     derniereValeurLuGPulse = 0;
     gt_dist_total_reelG_D[LEFT] = {0};
     gt_dist_total_reelG_D[RIGHT] = {0};
@@ -149,22 +148,22 @@ void Avancer(int pulse)
     acceleration_v = (v_max - g_vit_motd)/n_pulse_bar;
     Serial.println("DÉBUT: " + String(pulse));
     LigneDroitePID2();
+    bool ki_correction_in_progress = false;
     while(dist_reel_totG < pulse - derniereValeurLuGPulse)
     {
         // acceleration du début
-        if (g_vit_motg < v_max && accel == true)
+        if (!accel) {
+            // rien faire car l'acceleration est terminée
+        } else if(g_vit_motg >= v_max && accel == true) {
+            accel = false;
+        } else if (ki_correction_in_progress) {
+            // perte de un tour d'acceleration pour laisser le PID se calibrer
+        } else {
+            // augmentation de la vitesse
             g_vit_motg += acceleration_v*gt_derniere_lu_G_D[LEFT];
-        else
-        {
-            accel = false;
-        }
-        if (g_vit_motd < v_max && accel == true)
             g_vit_motd += acceleration_v*gt_derniere_lu_G_D[RIGHT];
-        else
-        {
-            accel = false;
         }
-        
+
         //decceleration
         if(pulse - dist_reel_totG < n_pulse_bar && g_vit_motd > 0.1 && g_vit_motd > 0.1 )
         {
@@ -179,6 +178,8 @@ void Avancer(int pulse)
             LigneDroitePID2();
         }
         
+        // acceleration and deceleration yielding
+        ki_correction_in_progress = !ki_correction_in_progress;
     }
     Serial.println("FIN: " + String(dist_reel_totG));
     MOTOR_SetSpeed(RIGHT,0);
