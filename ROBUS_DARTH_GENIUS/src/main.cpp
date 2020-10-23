@@ -166,7 +166,7 @@ void Avancer(int pulse)
         }
         
         //decceleration
-        if(pulse - dist_reel_totG < n_pulse_bar & g_vit_motd > 0.1 && g_vit_motd > 0.1)
+        if(pulse - dist_reel_totG < n_pulse_bar && g_vit_motd > 0.1 && g_vit_motd > 0.1 )
         {
             g_vit_motg -= acceleration_v*gt_derniere_lu_G_D[LEFT]*1.01;
             g_vit_motd -= acceleration_v*gt_derniere_lu_G_D[RIGHT]*1.01;
