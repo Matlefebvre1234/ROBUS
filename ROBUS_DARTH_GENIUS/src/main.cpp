@@ -48,8 +48,16 @@ void LigneDroitePID2();
 void reinitialiserVariable();
 int CmEnPulse (int distance_cm);
 
+bool avertisseurSonore();
 
-
+bool avertisseurSonore()
+{    
+    int detectedSound = analogRead(A0);
+    int bruitAmbiant = analogRead(A1);
+    Serial.println("bruit detected: " + String(detectedSound));
+    Serial.println("bruit ambiant: " + String(bruitAmbiant));
+    return detectedSound > bruitAmbiant;
+}
 // fonction pour reset les variables que nous utilisons pour le PID
 void reinitialiserVariable()
 {
@@ -71,6 +79,10 @@ void reinitialiserVariable()
 void setup()
 {
     BoardInit();
+    //AX_BuzzerON(5000);
+    AX_BuzzerOFF();
+    pinMode(A0, INPUT);
+    pinMode(A1, INPUT);
     Serial.begin(9600);
     reinitialiserVariable();
 }
@@ -298,71 +310,62 @@ void loop()
         {130, FRONT}
 
     };
-    /*
-    {125, FRONT},
-        {-90, TURN},
-        {105, FRONT},
-        {90, TURN},
-        {46, FRONT},
-        {90, TURN},
-        {54, FRONT},
-        {-90, TURN},
-        {205, FRONT},
-        {90, TURN},
-        {48, FRONT},
-        {-90, TURN},
-        {124, FRONT} */
-    // POUR i plus petit nombre de ligne dans la table
-    for (size_t i = 0; i < 13; i++)
-    {
-        reinitialiserVariable();
-        int distance_degre = instructions[i][0];
-        int action = instructions[i][1];
-        switch (action)
-        {
-        case FRONT:
-            Serial.println("FRONT");
-            Avancer(CmEnPulse(distance_degre));
-            delay(10);
-            break;
-        
-        case TURN:
-            Serial.println("TURN");
-            instructions[i][0] = -distance_degre;
-            Virage_2roue(distance_degre);
-            delay(10);
-            break;
-        }
+    
+    delay(1000);
+    if(avertisseurSonore()) {
+        delay(1000);
+        Serial.println("start");
+        // for (size_t i = 0; i < 13; i++)
+        // {
+        //     reinitialiserVariable();
+        //     int distance_degre = instructions[i][0];
+        //     int action = instructions[i][1];
+        //     switch (action)
+        //     {
+        //     case FRONT:
+        //         Serial.println("FRONT");
+        //         Avancer(CmEnPulse(distance_degre));
+        //         delay(10);
+        //         break;
+            
+        //     case TURN:
+        //         Serial.println("TURN");
+        //         instructions[i][0] = -distance_degre;
+        //         Virage_2roue(distance_degre);
+        //         delay(10);
+        //         break;
+        //     }
+        // }
+
+        // // FIN de la loop for
+        // reinitialiserVariable();
+        // delay(200);
+        // Virage_2roue(ang_retour);
+        // delay(10);
+        // // FIN RETOUR
+
+        // // POUR Y plus grand ou egale au nombre de ligne dans la table
+        // for (int Y = 12; Y >= 0; Y--)
+        // {
+        //     reinitialiserVariable();
+        //     int distance_degre = instructions[Y][0];
+        //     int action = instructions[Y][1];
+        //     switch (action)
+        //     {
+        //     case FRONT:
+        //         Serial.println("FRONT");
+        //         Avancer(CmEnPulse(distance_degre));
+        //         delay(10);
+        //         break;
+            
+        //     case TURN:
+        //         Serial.println("TURN");
+        //         Virage_2roue(distance_degre);
+        //         delay(10);
+        //         break;
+        //     }
+        // }
+        // // FIN de la loop for du retour
     }
 
-    // FIN de la loop for
-    reinitialiserVariable();
-    delay(200);
-    Virage_2roue(ang_retour);
-    delay(10);
-    // FIN RETOUR
-
-    // POUR Y plus grand ou egale au nombre de ligne dans la table
-    for (int Y = 12; Y >= 0; Y--)
-    {
-        reinitialiserVariable();
-        int distance_degre = instructions[Y][0];
-        int action = instructions[Y][1];
-        switch (action)
-        {
-        case FRONT:
-            Serial.println("FRONT");
-            Avancer(CmEnPulse(distance_degre));
-            delay(10);
-            break;
-        
-        case TURN:
-            Serial.println("TURN");
-            Virage_2roue(distance_degre);
-            delay(10);
-            break;
-        }
-    }
-    // FIN de la loop for du retour
-    exit(0);
 }
