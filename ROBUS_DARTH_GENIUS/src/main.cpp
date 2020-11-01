@@ -20,8 +20,9 @@ int vitesse = 300;
 
 // VITESSE pour le robot B a .50
 // VITESSE pour le robot A a .66 - .75
-float g_vit_motg_Origin = 0.66;
-float g_vit_motd_Origin = 0.66;
+float g_vit_motg_Origin = 1;
+float g_vit_motd_Origin = 1
+;
 float g_vit_motd = g_vit_motd_Origin;
 float g_vit_motg = g_vit_motg_Origin;
 int nbcycle = 0;
@@ -112,10 +113,10 @@ void LigneDroitePID2()
     // dépendant des robots car elles sont composées de matériaux différents,
     // calcule de la compatation pour chacune des roues.
     
-    comp_d = kp * erreurD + ki * erreurDistanceD; // Robot A
-    comp_g = kp * erreurG + ki * erreurDistanceG;
-    //comp_d = kpB * erreurD + kiB * erreurDistanceD;   //Robot B
-    //comp_g = kpB * erreurG + kiB * erreurDistanceG;
+    //comp_d = kp * erreurD + ki * erreurDistanceD; // Robot A
+    //comp_g = kp * erreurG + ki * erreurDistanceG;
+    comp_d = kpB * erreurD + kiB * erreurDistanceD;   //Robot B
+    comp_g = kpB * erreurG + kiB * erreurDistanceG;
     
     // FIN de la dependance pour PID
     g_vit_motd = g_vit_motd - direction_droite*(comp_d/2);
@@ -123,7 +124,7 @@ void LigneDroitePID2()
 
 
     // FIN NOUVEAU
-    delay(50);
+    delay(30);
 
     MOTOR_SetSpeed(RIGHT,g_vit_motd);
     MOTOR_SetSpeed(LEFT,g_vit_motg);
@@ -148,38 +149,39 @@ void Avancer(int pulse)
     acceleration_v = (v_max - g_vit_motd)/n_pulse_bar;
     Serial.println("DÉBUT: " + String(pulse));
     LigneDroitePID2();
-    bool ki_correction_in_progress = false;
+    int ki_correction_in_progress = 0;
     while(dist_reel_totG < pulse - derniereValeurLuGPulse)
-    {
+    {        
         // acceleration du début
         if (!accel) {
             // rien faire car l'acceleration est terminée
         } else if(g_vit_motg >= v_max && accel == true) {
             accel = false;
-        } else if (ki_correction_in_progress) {
+        } else if (ki_correction_in_progress < 3) {
+            ki_correction_in_progress++;
             // perte de un tour d'acceleration pour laisser le PID se calibrer
         } else {
             // augmentation de la vitesse
             g_vit_motg += acceleration_v*gt_derniere_lu_G_D[LEFT];
             g_vit_motd += acceleration_v*gt_derniere_lu_G_D[RIGHT];
+            ki_correction_in_progress = 0;
         }
 
         //decceleration
-        if(pulse - dist_reel_totG < n_pulse_bar && g_vit_motd > 0.1 && g_vit_motd > 0.1 )
-        {
-            g_vit_motg -= acceleration_v*gt_derniere_lu_G_D[LEFT]*1.01;
-            g_vit_motd -= acceleration_v*gt_derniere_lu_G_D[RIGHT]*1.01;
-            Serial.println("distance reel total G: " + String(dist_reel_totG));
-            LigneDroitePID2();
+        if(accel){
+
         }
-        else
-        {
-            Serial.println("distance reel total G: " + String(dist_reel_totG));
-            LigneDroitePID2();
+        else if (ki_correction_in_progress < 3) {
+            ki_correction_in_progress++;
+            // perte de un tour d'acceleration pour laisser le PID se calibrer
         }
-        
-        // acceleration and deceleration yielding
-        ki_correction_in_progress = !ki_correction_in_progress;
+        else if(pulse - dist_reel_totG < n_pulse_bar && g_vit_motd > 0 && g_vit_motd > 0 )
+        {
+            g_vit_motg -= acceleration_v*gt_derniere_lu_G_D[LEFT]*ki_correction_in_progress;
+            g_vit_motd -= acceleration_v*gt_derniere_lu_G_D[RIGHT]*ki_correction_in_progress;
+            ki_correction_in_progress = 0;
+        }
+        LigneDroitePID2();
     }
     Serial.println("FIN: " + String(dist_reel_totG));
     MOTOR_SetSpeed(RIGHT,0);
@@ -284,20 +286,19 @@ void loop()
     ///
     // INSTRUCTIONS
     int instructions[13][2] = {
-        {125, FRONT},
-        {-90, TURN},
-        {105, FRONT},
-        {90, TURN},
-        {46, FRONT},
-        {90, TURN},
-        {58, FRONT},
-        {-90, TURN},
         {205, FRONT},
-        {90, TURN},
-        {50, FRONT},
-        {-89, TURN},
-        {130, FRONT}
-
+        {-180, TURN},
+        {205, FRONT},
+        {-180, TURN},
+        {205, FRONT},
+        {-180, TURN},
+        {205, FRONT},
+        {-180, TURN},
+        {205, FRONT},
+        {-180, TURN},
+        {205, FRONT},
+        {-180, TURN},
+        {205, FRONT}
     };
     /*
     {125, FRONT},
