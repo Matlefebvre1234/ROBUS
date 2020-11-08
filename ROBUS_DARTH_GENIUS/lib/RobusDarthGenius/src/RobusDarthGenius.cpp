@@ -4,8 +4,8 @@
 
 int g_direction = 1;
 int vitesse = 300;
-float g_vit_motg_Origin = 1;
-float g_vit_motd_Origin = 1;
+float g_vit_motg_Origin = .70;
+float g_vit_motd_Origin = .70;
 float g_vit_motd = g_vit_motd_Origin;
 float g_vit_motg = g_vit_motg_Origin;
 int nbcycle = 0;
@@ -21,7 +21,16 @@ float kpB_Origine = 0.0004;
 float kiB_Origine = 0.00004;
 float kpB = kpB_Origine;
 float kiB = kiB_Origine;
-
+float kpB_dec = 0.00001;
+float kiB_dec = 0.000001;
+bool avertisseurSonore()
+{
+    int detectedSound = analogRead(A0);
+    int bruitAmbiant = analogRead(A1);
+    Serial.println("bruit detected: " + String(detectedSound));
+    Serial.println("bruit ambiant: " + String(bruitAmbiant));
+    return detectedSound > bruitAmbiant;
+}
 // fonction pour reset les variables que nous utilisons pour le PID
 void reinitialiserVariable()
 {
@@ -31,7 +40,7 @@ void reinitialiserVariable()
     kiB = kiB_Origine;
     nbcycle = 0;
     dist_reel_totD = 0;
-    dist_reel_totG = 0 ;
+    dist_reel_totG = 0;
     dist_totalG = 0;
     derniereValeurLuGPulse = 0;
     gt_dist_total_reelG_D[LEFT] = {0};
@@ -141,6 +150,8 @@ void Avancer(int pulse)
         }
         else if(pulse - dist_reel_totG < n_pulse_bar && g_vit_motd > 0 && g_vit_motd > 0 )
         {
+            kiB = kiB_dec;
+            kpB = kpB_dec;
             g_vit_motg -= acceleration_v*gt_derniere_lu_G_D[LEFT]*ki_correction_in_progress;
             g_vit_motd -= acceleration_v*gt_derniere_lu_G_D[RIGHT]*ki_correction_in_progress;
             ki_correction_in_progress = 0;

@@ -20,4 +20,5 @@ void Virage_1roue(float angle);
 void Virage_2roue(float angle);
 int CmEnPulse (int distance_cm);
 void reinitialiserVariable();
+bool avertisseurSonore();
 #endif //RobusDarthGenius
