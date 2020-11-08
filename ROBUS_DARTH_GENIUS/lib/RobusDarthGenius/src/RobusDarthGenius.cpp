@@ -4,8 +4,8 @@
 
 int g_direction = 1;
 int vitesse = 300;
-float g_vit_motg_Origin = .70;
-float g_vit_motd_Origin = .70;
+float g_vit_motg_Origin = .50;
+float g_vit_motd_Origin = .50;
 float g_vit_motd = g_vit_motd_Origin;
 float g_vit_motg = g_vit_motg_Origin;
 int nbcycle = 0;
@@ -66,9 +66,9 @@ bool avertisseurSonore()
 {
     int detectedSound = analogRead(A0);
     int bruitAmbiant = analogRead(A1);
-    Serial.println("bruit detected: " + String(detectedSound));
+    Serial.println("bruit detected: " + (String(detectedSound - 30)));
     Serial.println("bruit ambiant: " + String(bruitAmbiant));
-    return detectedSound > bruitAmbiant;
+    return detectedSound-30 > bruitAmbiant;
 }
 // fonction pour reset les variables que nous utilisons pour le PID
 void reinitialiserVariable()

@@ -28,7 +28,7 @@ void prendreBallon()
     SERVO_Disable(LEFT);
     SERVO_Disable(RIGHT);
     RelacherBalle();
-    Virage_2roue(94);
+    Virage_2roue(93);
     delay(2000);
     reinitialiserVariable();
     Avancer(CmEnPulse(25));
@@ -47,12 +47,12 @@ void prendreBallon()
     {
         Avancer(CmEnPulse(84));
         reinitialiserVariable();
-        Virage_2roue(94);
+        Virage_2roue(93);
         reinitialiserVariable();
         Avancer(CmEnPulse(25));
         reinitialiserVariable();
     }
-    else if (0) //bleu
+    else if (1) //bleu
     {
         Avancer(CmEnPulse(163));
         reinitialiserVariable();
@@ -61,15 +61,16 @@ void prendreBallon()
         Avancer(CmEnPulse(25));
         reinitialiserVariable();
     }
-    else if (1) //rouge
+    else if (0) //rouge
     {
         Avancer(CmEnPulse(230));
         reinitialiserVariable();
-        Virage_2roue(94);
+        Virage_2roue(93);
         reinitialiserVariable();
         Avancer(CmEnPulse(25));
         reinitialiserVariable();
     }
+    AttraperBalle();
 }
 void loop()
 {   
@@ -77,9 +78,10 @@ void loop()
     delay(1000);
     if (avertisseurSonore())
     {
-        printf("START");
-        prendreBallon();
+        Serial.println("START");
+        //prendreBallon();
+
+        testROBOT();
         exit(0);
-        //testROBOT();
     }
 }
