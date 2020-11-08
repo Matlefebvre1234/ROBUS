@@ -1,0 +1,9 @@
+{
+    "name":"RobusDarthGenius",
+    "description":"Library for the team Darth Genius.",
+    "keywords":"Genius",
+    "authors":
+    [ 
+    ],
+    "version": "1.0.0"
+  }
