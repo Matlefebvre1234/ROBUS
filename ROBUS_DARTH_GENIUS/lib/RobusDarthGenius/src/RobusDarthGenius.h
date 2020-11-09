@@ -27,4 +27,5 @@ bool avertisseurSonore();
 void RelacherBalle();
 void AttraperBalle();
 void testROBOT();
+void Virage_1roueDroite(float angle);
 #endif //RobusDarthGenius
