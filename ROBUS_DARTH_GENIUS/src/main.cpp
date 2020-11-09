@@ -1,11 +1,18 @@
 #include <Arduino.h>
 #include <LibRobus.h>
+#include <musique.h>
+
 // déclaration des variables
-#define PI 3.1416
-#define FRONT 0
+//#define PI 3.1416
+#define AVANCER 0
 #define TURN 1
+#define SONAR 1
+
+float distanceSonar=0;
+int i = 100;
+int j = 0;
+
 int g_direction = 1;
-int vitesse = 300;
 float g_vit_motg_Origin = 0.55;
 float g_vit_motd_Origin = 0.55;
 float g_vit_motd = g_vit_motd_Origin;
@@ -18,15 +25,16 @@ int gt_dist_total_reelG_D[2] = {0,0};
 int gt_derniere_lu_G_D[2] = {0,0};
 // déclaration des fonctions
 int dist_reel_totG =0 ;
-float kp = 0.0002;
+float kp = 0.0004;
 float ki = 0.00004;
 float kpB = 0.0004;
 float kiB = 0.00004;
 
 void Virage_1roue(float angle);
 void Virage_2roue(float angle);
-void Avancer(float distance);
+void Avancer(float distance, bool detect);
 void LigneDroitePID2();
+int CmEnPulse(int distance_cm);
 void reinitialiserVariable();
 // fonction pour reset les variables que nous utilisons pour le PID
 void reinitialiserVariable()
@@ -101,17 +109,21 @@ void LigneDroitePID2()
     MOTOR_SetSpeed(LEFT,g_vit_motg);
 }
 
-void Avancer(int pulse)
+void Avancer(int pulse, bool detect)
 {
-    int deceleration = pulse - (pulse * 0.1);
+    //int deceleration = pulse - (pulse * 0.1);
     bool accel = true;
 
-    g_vit_motd = 0.22;
-    g_vit_motg = 0.22;
-    Serial.println("DÉBUT: " + String(pulse));
-    while(dist_reel_totG < pulse - derniereValeurLuGPulse)
-    {
-        // acceleration du début
+    g_vit_motd = 0.24;
+    g_vit_motg = 0.24;
+    // Serial.println("DÉBUT: " + String(pulse));
+    while((dist_reel_totG < pulse - derniereValeurLuGPulse))
+    {   
+        distanceSonar = SONAR_GetRange(1);
+        // Serial.print("dans fonction avancer   ");
+        Serial.println("distance du radar: "+String(distanceSonar));
+
+        // acceleration du début    
         if (g_vit_motg < g_vit_motg_Origin && accel == true)
             g_vit_motg += 0.03;
         else
@@ -124,23 +136,21 @@ void Avancer(int pulse)
         {
             accel = false;
         }
-        
-        //decceleration
-        if(pulse - dist_reel_totG < 3200 & g_vit_motd > 0.1 && g_vit_motd > 0.1)
+        if(distanceSonar <= 75 && detect == true)
         {
-            g_vit_motg -= 0.028;
-            g_vit_motd -= 0.028;
-            Serial.println("distance reel total G: " + String(dist_reel_totG));
-            LigneDroitePID2();
+            MOTOR_SetSpeed(RIGHT,0);
+            MOTOR_SetSpeed(LEFT,0);
+            int theDistance = int(sin(20)*distanceSonar);
+            Serial.println("detected at: "+String(theDistance));
+            Virage_2roue(-90);
+            delay(1000);
+            Avancer(theDistance, false);
+            delay(500);
+            return;
         }
-        else
-        {
-            Serial.println("distance reel total G: " + String(dist_reel_totG));
-            LigneDroitePID2();
-        }
-        
+        LigneDroitePID2();
     }
-    Serial.println("FIN: " + String(dist_reel_totG));
+    // Serial.println("FIN: " + String(dist_reel_totG));
     MOTOR_SetSpeed(RIGHT,0);
     MOTOR_SetSpeed(LEFT,0);
 }
@@ -185,10 +195,10 @@ void Virage_2roue(float angle)
     g_vit_motd = g_direction * -0.14;
     g_vit_motg = g_direction * 0.14;
     
-    Serial.print("abs_encoder: ");
-    Serial.println(abs(ENCODER_Read(roue_maitre)));
-    Serial.print("pulse_afaire/2: ");
-    Serial.println(pulse_distribution);
+    // Serial.print("abs_encoder: ");
+    // Serial.println(abs(ENCODER_Read(roue_maitre)));
+    // Serial.print("pulse_afaire/2: ");
+    // Serial.println(pulse_distribution);
 
     while(abs(ENCODER_Read(roue_maitre)) <= pulse_distribution - abs(gt_dist_total_reelG_D[roue_maitre]))
     {
@@ -197,9 +207,9 @@ void Virage_2roue(float angle)
     MOTOR_SetSpeed (LEFT, 0);
     MOTOR_SetSpeed (RIGHT, 0);
     delay(500);
-    Serial.println(pulse_distribution);
-    Serial.println(gt_dist_total_reelG_D[roue_maitre]);
-    Serial.println(gt_derniere_lu_G_D[roue_maitre]);
+    // Serial.println(pulse_distribution);
+    // Serial.println(gt_dist_total_reelG_D[roue_maitre]);
+    // Serial.println(gt_derniere_lu_G_D[roue_maitre]);
     // CORRECTION D'ERREUR
     int pulse_erreur = pulse_distribution - abs(gt_dist_total_reelG_D[roue_maitre]) - abs(gt_derniere_lu_G_D[roue_maitre]);
     if(pulse_erreur != 0){
@@ -208,7 +218,7 @@ void Virage_2roue(float angle)
         ENCODER_Reset(roue_maitre);
         while (abs(ENCODER_Read(roue_maitre)) < pulse_erreur)
         {
-            Serial.println(abs(ENCODER_Read(roue_maitre)));
+            // Serial.println(abs(ENCODER_Read(roue_maitre)));
         }
         MOTOR_SetSpeed (roue_maitre, 0);
     }
@@ -218,65 +228,43 @@ int CmEnPulse (int distance_cm)
     int distancePulse = (3200/23.9389*distance_cm);
     return distancePulse;
 }
+
+
 void loop()
 {    
-    int instructions[11][2] = {
-        {125, FRONT},
-        {-90, TURN},
-        {90, FRONT},
-        {90, TURN},
-        {90, FRONT},
-        {45, TURN},
-        {180, FRONT},
-        {-90, TURN},
-        {64, FRONT},
-        {45, TURN},
-        {100, FRONT}
-    };
-    for (size_t i = 0; i < 11; i++)
-    {
-        reinitialiserVariable();
-        int distance_degre = instructions[i][0];
-        int action = instructions[i][1];
-        switch (action)
-        {
-        case FRONT:
-            Serial.println("FRONT");
-            Avancer(CmEnPulse(distance_degre));
-            delay(10);
-            break;
-        
-        case TURN:
-            Serial.println("TURN");
-            instructions[i][0] = -distance_degre;
-            Virage_2roue(distance_degre);
-            delay(10);
-            break;
-        }
-    }
-    reinitialiserVariable();
-    delay(100);
-    Virage_2roue(180);
-    delay(10);
-    for (int Y = 10; Y >= 0; Y--)
-    {
-        reinitialiserVariable();
-        int distance_degre = instructions[Y][0];
-        int action = instructions[Y][1];
-        switch (action)
-        {
-        case FRONT:
-            Serial.println("FRONT");
-            Avancer(CmEnPulse(distance_degre));
-            delay(10);
-            break;
-        
-        case TURN:
-            Serial.println("TURN");
-            Virage_2roue(distance_degre);
-            delay(10);
-            break;
-        }
-    }
-    exit(0);
+// Serial.println("dans fonction loop");
+// reinitialiserVariable();
+// distanceSonar= SONAR_GetRange(1);
+// delay(500);
+// Serial.println(distanceSonar);
+distanceSonar = SONAR_GetRange(1);
+Avancer(CmEnPulse(500), true);
+exit(0);
+
+// while ((distanceSonar >= 90)||(distanceSonar == 0))
+// {   
+//     distanceSonar= SONAR_GetRange(1);
+//     Avancer(CmEnPulse(i));
+//     j = i + j;
+//     Serial.print(j);
+//     Serial.print("     ");
+//     Serial.println(distanceSonar);
+//     if (j >= 480)
+//     {
+//         Serial.println("Fuck");
+//         Virage_2roue(-90);
+//         Avancer(CmEnPulse(80));
+//     }
+// }
+
+// Virage_2roue(-90);
+
+// Virage_2roue(-90);
+//     Avancer(CmEnPulse(80));
+// Virage_2roue(distance_degre);
+// delay(10);
+    
+    // while(1)
+//sensualSong();
+delay(500);
 }
