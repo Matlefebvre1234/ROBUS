@@ -18,10 +18,10 @@ General librairies for Darth Genius Robus
 
 void reinitialiserVariable();
 void LigneDroitePID2();
-void Avancer(int pulse, bool detect);
+void Avancer(long pulse, bool detect);
 void Virage_1roue(float angle);
 void Virage_2roue(float angle);
-int CmEnPulse (int distance_cm);
+long CmEnPulse (int distance_cm);
 void reinitialiserVariable();
 bool avertisseurSonore();
 void RelacherBalle();

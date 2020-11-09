@@ -18,58 +18,60 @@ void prendreBallon()
     Virage_2roue(93);
     delay(2000);
     reinitialiserVariable();
-    Avancer(CmEnPulse(25));
+    Avancer(CmEnPulse(25), false);
     reinitialiserVariable();
     Virage_2roue(-90);
     reinitialiserVariable();
-    Avancer(CmEnPulse(70));
+    Avancer(CmEnPulse(70), false);
     delay(1000); //couleur
     reinitialiserVariable();
-    Avancer(CmEnPulse(150));
+    Avancer(CmEnPulse(150), false);
     reinitialiserVariable();
     AttraperBalle();
     delay(1000);
 
     if (0) //jaune
     {
-        Avancer(CmEnPulse(84));
+        Avancer(CmEnPulse(84), false);
         reinitialiserVariable();
         Virage_2roue(93);
         reinitialiserVariable();
-        Avancer(CmEnPulse(25));
+        Avancer(CmEnPulse(25), false);
         reinitialiserVariable();
     }
     else if (1) //bleu
     {
-        Avancer(CmEnPulse(163));
+        Avancer(CmEnPulse(163), false);
         reinitialiserVariable();
         Virage_2roue(-90);
         reinitialiserVariable();
-        Avancer(CmEnPulse(25));
+        Avancer(CmEnPulse(25), false);
         reinitialiserVariable();
     }
     else if (0) //rouge
     {
-        Avancer(CmEnPulse(230));
+        Avancer(CmEnPulse(230), false);
         reinitialiserVariable();
         Virage_2roue(93);
         reinitialiserVariable();
-        Avancer(CmEnPulse(25));
+        Avancer(CmEnPulse(25), false);
         reinitialiserVariable();
     }
     AttraperBalle();
 }
 void loop()
-{    
+{
 // Serial.println("dans fonction loop");
 // reinitialiserVariable();
 // distanceSonar= SONAR_GetRange(1);
 // delay(500);
 // Serial.println(distanceSonar);
-
 float distanceSonar = 0;
 distanceSonar = SONAR_GetRange(1);
-Avancer(CmEnPulse(500), true);
+Avancer(CmEnPulse(200), true);
+Avancer(CmEnPulse(200), true);
+Avancer(CmEnPulse(75), true);
+delay(500);
 exit(0);
 
 // while ((distanceSonar >= 90)||(distanceSonar == 0))

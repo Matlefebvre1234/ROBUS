@@ -143,7 +143,7 @@ void LigneDroitePID2()
     MOTOR_SetSpeed(LEFT, g_vit_motg);
 }
 
-void Avancer(int pulse, bool detect = false)
+void Avancer(long pulse, bool detect = false)
 {
     int deceleration = pulse - (pulse * 0.1);
     float acceleration_v;
@@ -210,16 +210,21 @@ void Avancer(int pulse, bool detect = false)
         // Serial.print("dans fonction avancer   ");
         Serial.println("distance du radar: "+String(distanceSonar));
         
-        if(distanceSonar <= 75 && detect == true)
+        if(distanceSonar <= 70 && detect == true)
         {
             MOTOR_SetSpeed(RIGHT,0);
             MOTOR_SetSpeed(LEFT,0);
-            int theDistance = int(sin(20)*distanceSonar);
+            Serial.println("FIN: " + String(dist_reel_totG));
+            reinitialiserVariable();
+            int theDistance = int(distanceSonar/2);
             Serial.println("detected at: "+String(theDistance));
-            Virage_2roue(-90);
+            Avancer(CmEnPulse(theDistance), false);
             delay(1000);
-            Avancer(theDistance, false);
+            reinitialiserVariable();
+            Virage_2roue(-90);
             delay(500);
+            reinitialiserVariable();
+            Avancer(CmEnPulse(80), false);
             return;
         }
         LigneDroitePID2();
@@ -227,6 +232,7 @@ void Avancer(int pulse, bool detect = false)
     Serial.println("FIN: " + String(dist_reel_totG));
     MOTOR_SetSpeed(RIGHT, 0);
     MOTOR_SetSpeed(LEFT, 0);
+    reinitialiserVariable();
 }
 
 void Virage_1roue(float angle)
@@ -303,10 +309,11 @@ void Virage_2roue(float angle)
         MOTOR_SetSpeed(RIGHT, 0);
     }
     // FIN DE correction derreur
+    reinitialiserVariable();
 }
-int CmEnPulse(int distance_cm)
+long CmEnPulse(int distance_cm)
 {
-    int distancePulse = (3200 / 23.9389 * distance_cm);
+    long distancePulse = (3200 / 23.9389 * distance_cm);
     return distancePulse;
 }
 void testROBOT()
