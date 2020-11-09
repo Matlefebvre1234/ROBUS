@@ -1,6 +1,8 @@
 #include <Arduino.h>
 #include <LibRobus.h>
 #include <RobusDarthGenius.h>
+#include <Adafruit_TCS34725.h>
+
 
 int g_direction = 1;
 int vitesse = 300;
@@ -25,8 +27,8 @@ float ki = ki_Origine;
 // PID pour robot B
 float kpB_Origine = 0.0004;
 float kiB_Origine = 0.00004;
-float kpB_dec = 0.00001;
-float kiB_dec = 0.000001;
+float kpB_dec = 0.00004;
+float kiB_dec = 0.000003;
 float kpB = kpB_Origine;
 float kiB = kiB_Origine;
 //variables à mettre dans les variables globales
@@ -131,10 +133,12 @@ void LigneDroitePID2()
     //comp_g = kp * erreurG + ki * erreurDistanceG;
     comp_d = kpB * erreurD + kiB * erreurDistanceD; //Robot B
     comp_g = kpB * erreurG + kiB * erreurDistanceG;
+    Serial.println("droite: " + String(comp_d) + " gauche: " + String(comp_g));
 
     // FIN de la dependance pour PID
     g_vit_motd = g_vit_motd - direction_droite * (comp_d / 2);
     g_vit_motg = g_vit_motg - direction_gauche * (comp_g / 2);
+    Serial.println("c_droite: " + String(comp_d) + " c_gauche: " + String(comp_g));
 
     // FIN NOUVEAU
     delay(30);
@@ -205,27 +209,32 @@ void Avancer(long pulse, bool detect = false)
             g_vit_motd -= acceleration_v * gt_derniere_lu_G_D[RIGHT] * ki_correction_in_progress;
             ki_correction_in_progress = 0;
         }
-        
-        distanceSonar = SONAR_GetRange(1);
-        // Serial.print("dans fonction avancer   ");
-        Serial.println("distance du radar: "+String(distanceSonar));
-        
-        if(distanceSonar <= 70 && detect == true)
-        {
-            MOTOR_SetSpeed(RIGHT,0);
-            MOTOR_SetSpeed(LEFT,0);
-            Serial.println("FIN: " + String(dist_reel_totG));
-            reinitialiserVariable();
-            int theDistance = int(distanceSonar/2);
-            Serial.println("detected at: "+String(theDistance));
-            Avancer(CmEnPulse(theDistance), false);
-            delay(1000);
-            reinitialiserVariable();
-            Virage_2roue(-90);
-            delay(500);
-            reinitialiserVariable();
-            Avancer(CmEnPulse(80), false);
-            return;
+        if(detect){    
+            distanceSonar = SONAR_GetRange(1);
+            if(distanceSonar <= 65)
+            {
+                long distanceTillEnd = pulse - dist_reel_totG;
+                MOTOR_SetSpeed(RIGHT,0);
+                MOTOR_SetSpeed(LEFT,0);
+                reinitialiserVariable();
+                int theDistance = int((distanceSonar/2)-5);
+                Avancer(CmEnPulse(theDistance-5), false);
+                delay(1000);
+                reinitialiserVariable();
+                Virage_2roue(-90);
+                delay(500);
+                reinitialiserVariable();
+                Avancer(CmEnPulse(80), false);
+                delay(500);
+                Virage_1roueDroite(-180);
+                delay(500);
+                Avancer(CmEnPulse(80), false);
+                delay(500);
+                Virage_2roue(-90);
+                delay(500);
+                Avancer(distanceTillEnd-CmEnPulse(theDistance-5), false);
+                return;
+            }
         }
         LigneDroitePID2();
     }
@@ -254,9 +263,28 @@ void Virage_1roue(float angle)
     }
     MOTOR_SetSpeed(LEFT, 0);
     Serial.println(ENCODER_Read(LEFT));
-    delay(10);
+    reinitialiserVariable();
 }
+void Virage_1roueDroite(float angle) {
+    long pulse_afaire = angle * 44;
+    g_direction = 1;
+    if (angle < 0)
+    {
+        g_direction = -1;
+    }
 
+    MOTOR_SetSpeed(RIGHT, 0);
+    ENCODER_Reset(LEFT);
+    ENCODER_Reset(RIGHT);
+
+    MOTOR_SetSpeed(RIGHT, g_direction * 0.2);
+    while (abs(ENCODER_Read(RIGHT)) < abs(pulse_afaire))
+    {
+    }
+    MOTOR_SetSpeed(RIGHT, 0);
+    delay(10);
+    reinitialiserVariable();
+}
 void Virage_2roue(float angle)
 {
     int g_direction = 1;
@@ -403,4 +431,51 @@ void testROBOT()
         }
     }
     // FIN de la loop for du retour
+}
+
+int DetectionCouleur(){
+Adafruit_TCS34725 tcs = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_700MS, TCS34725_GAIN_1X);
+
+   if (tcs.begin()) {
+    Serial.println("Found sensor");
+  } else {
+    Serial.println("No TCS34725 found ... check your connections");
+  }
+
+
+ uint16_t r, g, b, c, colorTemp, lux;
+  int i = 0;
+    while(i < 5){
+      tcs.getRawData(&r, &g, &b, &c);
+  colorTemp = tcs.calculateColorTemperature(r, g, b);
+  lux = tcs.calculateLux(r, g, b);
+  i++;
+
+    
+  Serial.print("Color Temp: "); Serial.print(colorTemp, DEC); Serial.print(" K - ");
+  Serial.print("Lux: "); Serial.print(lux, DEC); Serial.print(" - ");
+  Serial.print("R: "); Serial.print(r, DEC); Serial.print(" ");
+  Serial.print("G: "); Serial.print(g, DEC); Serial.print(" ");
+  Serial.print("B: "); Serial.print(b, DEC); Serial.print(" ");
+  Serial.print("C: "); Serial.print(c, DEC); Serial.print(" ");
+  Serial.println(" ");
+    }
+    
+    digitalWrite(PinBLEU, LOW);
+    digitalWrite(PinROUGE, LOW);
+    digitalWrite(PinJAUNE, LOW);
+    digitalWrite(PinVERT, LOW);
+    
+
+  if( colorTemp >= 4500 && colorTemp <= 5500){
+    digitalWrite(PinROUGE, HIGH);
+    return ROUGE;
+  }else if( colorTemp >= 3500 && colorTemp <= 4500){
+    digitalWrite(PinJAUNE,HIGH);
+    return JAUNE;
+  }else if( colorTemp >= 5500 && colorTemp <= 6500){
+    digitalWrite(PinBLEU, HIGH);
+    return BLEU;
+  }
+
 }

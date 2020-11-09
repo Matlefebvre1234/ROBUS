@@ -15,6 +15,14 @@ General librairies for Darth Genius Robus
 #define TURN 1
 #define SONAR 1
 #define CAPTEUR 2
+#define JAUNE 1
+#define BLEU 2
+#define ROUGE 3
+#define VERT 4
+#define PinJAUNE 8
+#define PinBLEU 9
+#define PinROUGE 11
+#define PinVERT 13
 
 void reinitialiserVariable();
 void LigneDroitePID2();
@@ -27,4 +35,6 @@ bool avertisseurSonore();
 void RelacherBalle();
 void AttraperBalle();
 void testROBOT();
+int DetectionCouleur();
+void Virage_1roueDroite(float angle);
 #endif //RobusDarthGenius
