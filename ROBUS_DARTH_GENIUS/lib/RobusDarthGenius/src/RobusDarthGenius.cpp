@@ -6,8 +6,8 @@
 
 int g_direction = 1;
 int vitesse = 300;
-float g_vit_motg_Origin = .50;
-float g_vit_motd_Origin = .50;
+float g_vit_motg_Origin = .60;
+float g_vit_motd_Origin = .60;
 float g_vit_motd = g_vit_motd_Origin;
 float g_vit_motg = g_vit_motg_Origin;
 int nbcycle = 0;
@@ -133,12 +133,10 @@ void LigneDroitePID2()
     //comp_g = kp * erreurG + ki * erreurDistanceG;
     comp_d = kpB * erreurD + kiB * erreurDistanceD; //Robot B
     comp_g = kpB * erreurG + kiB * erreurDistanceG;
-    Serial.println("droite: " + String(comp_d) + " gauche: " + String(comp_g));
 
     // FIN de la dependance pour PID
     g_vit_motd = g_vit_motd - direction_droite * (comp_d / 2);
     g_vit_motg = g_vit_motg - direction_gauche * (comp_g / 2);
-    Serial.println("c_droite: " + String(comp_d) + " c_gauche: " + String(comp_g));
 
     // FIN NOUVEAU
     delay(30);
@@ -209,11 +207,27 @@ void Avancer(long pulse, bool detect = false)
             g_vit_motd -= acceleration_v * gt_derniere_lu_G_D[RIGHT] * ki_correction_in_progress;
             ki_correction_in_progress = 0;
         }
-        if(detect){    
+        if(detect) {
             distanceSonar = SONAR_GetRange(1);
-            if(distanceSonar <= 65)
+            if(distanceSonar <= 62)
             {
                 long distanceTillEnd = pulse - dist_reel_totG;
+                Serial.println("fouund at: " + String(dist_reel_totG));
+                if(dist_reel_totG <= 25000 && dist_reel_totG >= 22000) {
+                    MOTOR_SetSpeed(RIGHT,0);
+                    MOTOR_SetSpeed(LEFT,0);
+                    delay(20000);
+                    reinitialiserVariable();
+                    int theDistance = int((distanceSonar/2)-5);
+                    Avancer(CmEnPulse(theDistance-5), false);
+                    delay(1000);
+                    reinitialiserVariable();
+                    Virage_2roue(-90);
+                    delay(500);
+                    reinitialiserVariable();
+                    Avancer(CmEnPulse(77), false);
+                    return;
+                }
                 MOTOR_SetSpeed(RIGHT,0);
                 MOTOR_SetSpeed(LEFT,0);
                 reinitialiserVariable();
@@ -224,14 +238,9 @@ void Avancer(long pulse, bool detect = false)
                 Virage_2roue(-90);
                 delay(500);
                 reinitialiserVariable();
-                Avancer(CmEnPulse(80), false);
+                Avancer(CmEnPulse(77), false);
                 delay(500);
-                Virage_1roueDroite(-180);
-                delay(500);
-                Avancer(CmEnPulse(80), false);
-                delay(500);
-                Virage_2roue(-90);
-                delay(500);
+                Virage_1roueDroite(-90);
                 Avancer(distanceTillEnd-CmEnPulse(theDistance-5), false);
                 return;
             }
