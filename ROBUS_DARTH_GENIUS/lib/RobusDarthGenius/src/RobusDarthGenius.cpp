@@ -213,7 +213,7 @@ void Avancer(long pulse, bool detect = false)
             {
                 long distanceTillEnd = pulse - dist_reel_totG;
                 Serial.println("fouund at: " + String(dist_reel_totG));
-                if(dist_reel_totG <= 25000 && dist_reel_totG >= 22000) {
+                if(dist_reel_totG <= 30900) {
                     MOTOR_SetSpeed(RIGHT,0);
                     MOTOR_SetSpeed(LEFT,0);
                     delay(20000);
@@ -226,6 +226,7 @@ void Avancer(long pulse, bool detect = false)
                     delay(500);
                     reinitialiserVariable();
                     Avancer(CmEnPulse(77), false);
+                    Virage_1roueDroite(-92);
                     return;
                 }
                 MOTOR_SetSpeed(RIGHT,0);
@@ -240,7 +241,7 @@ void Avancer(long pulse, bool detect = false)
                 reinitialiserVariable();
                 Avancer(CmEnPulse(77), false);
                 delay(500);
-                Virage_1roueDroite(-90);
+                Virage_1roueDroite(-92);
                 Avancer(distanceTillEnd-CmEnPulse(theDistance-5), false);
                 return;
             }
