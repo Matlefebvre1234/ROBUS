@@ -8,7 +8,14 @@ void setup()
     BoardInit();
     Serial.begin(9600);
     reinitialiserVariable();
+    // Allumer les PIN pour la detection de couleur
+    pinMode(PinBLEU, OUTPUT);
+    pinMode(PinJAUNE, OUTPUT);
+    pinMode(PinROUGE, OUTPUT);
+    pinMode(PinVERT, OUTPUT);
+
 }
+
 void prendreBallon()
 {
     delay(1000);
@@ -28,9 +35,9 @@ void prendreBallon()
     Avancer(CmEnPulse(150), false);
     reinitialiserVariable();
     AttraperBalle();
-    delay(1000);
+    delay(500);
 
-    if (0) //jaune
+    if (DectectionCouleur() == JAUNE) //jaune
     {
         Avancer(CmEnPulse(84), false);
         reinitialiserVariable();
@@ -39,7 +46,7 @@ void prendreBallon()
         Avancer(CmEnPulse(25), false);
         reinitialiserVariable();
     }
-    else if (1) //bleu
+    else if (DectectionCouleur() == BLEU ) //bleu
     {
         Avancer(CmEnPulse(163), false);
         reinitialiserVariable();
@@ -48,7 +55,7 @@ void prendreBallon()
         Avancer(CmEnPulse(25), false);
         reinitialiserVariable();
     }
-    else if (0) //rouge
+    else if (DectectionCouleur() == ROUGE) //rouge
     {
         Avancer(CmEnPulse(230), false);
         reinitialiserVariable();
@@ -59,20 +66,24 @@ void prendreBallon()
     }
     AttraperBalle();
 }
+
 void loop()
 {
+    delay(1000);
+    prendreBallon();
+    
 // Serial.println("dans fonction loop");
 // reinitialiserVariable();
 // distanceSonar= SONAR_GetRange(1);
 // delay(500);
 // Serial.println(distanceSonar);
-float distanceSonar = 0;
-distanceSonar = SONAR_GetRange(1);
-Avancer(CmEnPulse(200), true);
-Avancer(CmEnPulse(200), true);
-Avancer(CmEnPulse(75), true);
-delay(500);
-exit(0);
+// float distanceSonar = 0;
+// distanceSonar = SONAR_GetRange(1);
+// Avancer(CmEnPulse(200), true);
+// Avancer(CmEnPulse(200), true);
+// Avancer(CmEnPulse(75), true);
+// delay(500);
+// exit(0);
 
 // while ((distanceSonar >= 90)||(distanceSonar == 0))
 // {   
@@ -99,5 +110,4 @@ exit(0);
     
     // while(1)
 //sensualSong();
-delay(500);
 }
