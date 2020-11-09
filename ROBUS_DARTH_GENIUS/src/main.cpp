@@ -13,8 +13,9 @@ int i = 100;
 int j = 0;
 
 int g_direction = 1;
-float g_vit_motg_Origin = 0.55;
-float g_vit_motd_Origin = 0.55;
+int vitesse = 300;
+float g_vit_motg_Origin = 0.70;
+float g_vit_motd_Origin = 0.70;
 float g_vit_motd = g_vit_motd_Origin;
 float g_vit_motg = g_vit_motg_Origin;
 float derniereValeurLuGPulse = 0;
@@ -104,37 +105,50 @@ void LigneDroitePID2()
     g_vit_motd = g_vit_motd - direction_droite*(comp_d/2);
     g_vit_motg = g_vit_motg - direction_gauche*(comp_g/2);
     // FIN NOUVEAU
-    delay(10);
+    delay(50);
     MOTOR_SetSpeed(RIGHT,g_vit_motd);
     MOTOR_SetSpeed(LEFT,g_vit_motg);
 }
 
 void Avancer(int pulse, bool detect)
 {
-    //int deceleration = pulse - (pulse * 0.1);
+    int deceleration = pulse - (pulse * 0.1);
+    float acceleration_v;
+    float n_pulse_bar = 4200;
     bool accel = true;
 
-    g_vit_motd = 0.24;
-    g_vit_motg = 0.24;
-    // Serial.println("DÉBUT: " + String(pulse));
-    while((dist_reel_totG < pulse - derniereValeurLuGPulse))
-    {   
+    g_vit_motd = 0.22;
+    g_vit_motg = 0.22;
+    acceleration_v = (g_vit_motg_Origin - g_vit_motd)/n_pulse_bar;
+    Serial.println("DÉBUT: " + String(pulse));
+    LigneDroitePID2();
+    delay(250);
+    while(dist_reel_totG < pulse - derniereValeurLuGPulse)
+    {
+        // acceleration du début
+        
         distanceSonar = SONAR_GetRange(1);
         // Serial.print("dans fonction avancer   ");
         Serial.println("distance du radar: "+String(distanceSonar));
-
-        // acceleration du début    
         if (g_vit_motg < g_vit_motg_Origin && accel == true)
-            g_vit_motg += 0.03;
+            g_vit_motg += acceleration_v*gt_derniere_lu_G_D[LEFT];
         else
         {
             accel = false;
         }
         if (g_vit_motd < g_vit_motd_Origin && accel == true)
-            g_vit_motd += 0.03;
+            g_vit_motd += acceleration_v*gt_derniere_lu_G_D[RIGHT];
         else
         {
             accel = false;
+        }
+        
+        //decceleration
+        if(pulse - dist_reel_totG < n_pulse_bar & g_vit_motd > 0.1 && g_vit_motd > 0.1)
+        {
+            g_vit_motg -= acceleration_v*gt_derniere_lu_G_D[LEFT];
+            g_vit_motd -= acceleration_v*gt_derniere_lu_G_D[RIGHT];
+            Serial.println("distance reel total G: " + String(dist_reel_totG));
         }
         if(distanceSonar <= 75 && detect == true)
         {
@@ -200,6 +214,7 @@ void Virage_2roue(float angle)
     // Serial.print("pulse_afaire/2: ");
     // Serial.println(pulse_distribution);
 
+    LigneDroitePID2();
     while(abs(ENCODER_Read(roue_maitre)) <= pulse_distribution - abs(gt_dist_total_reelG_D[roue_maitre]))
     {
         LigneDroitePID2();
