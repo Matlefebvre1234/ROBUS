@@ -18,6 +18,7 @@ void setup()
 
 void prendreBallon()
 {
+    int couleur = 0;
     delay(1000);
     SERVO_Disable(LEFT);
     SERVO_Disable(RIGHT);
@@ -31,13 +32,14 @@ void prendreBallon()
     reinitialiserVariable();
     Avancer(CmEnPulse(70), false);
     delay(1000); //couleur
+    couleur = DetectionCouleur();
     reinitialiserVariable();
     Avancer(CmEnPulse(150), false);
     reinitialiserVariable();
     AttraperBalle();
     delay(500);
 
-    if (DectectionCouleur() == JAUNE) //jaune
+    if (couleur == JAUNE) //jaune
     {
         Avancer(CmEnPulse(84), false);
         reinitialiserVariable();
@@ -46,7 +48,7 @@ void prendreBallon()
         Avancer(CmEnPulse(25), false);
         reinitialiserVariable();
     }
-    else if (DectectionCouleur() == BLEU ) //bleu
+    else if (couleur == BLEU ) //bleu
     {
         Avancer(CmEnPulse(163), false);
         reinitialiserVariable();
@@ -55,7 +57,7 @@ void prendreBallon()
         Avancer(CmEnPulse(25), false);
         reinitialiserVariable();
     }
-    else if (DectectionCouleur() == ROUGE) //rouge
+    else if (couleur == ROUGE) //rouge
     {
         Avancer(CmEnPulse(230), false);
         reinitialiserVariable();

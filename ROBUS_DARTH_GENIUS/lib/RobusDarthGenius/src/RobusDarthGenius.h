@@ -35,6 +35,6 @@ bool avertisseurSonore();
 void RelacherBalle();
 void AttraperBalle();
 void testROBOT();
-int DectectionCouleur();
+int DetectionCouleur();
 void Virage_1roueDroite(float angle);
 #endif //RobusDarthGenius

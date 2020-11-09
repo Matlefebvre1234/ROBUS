@@ -442,7 +442,7 @@ void testROBOT()
     // FIN de la loop for du retour
 }
 
-int DectectionCouleur(){
+int DetectionCouleur(){
 Adafruit_TCS34725 tcs = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_700MS, TCS34725_GAIN_1X);
 
    if (tcs.begin()) {
@@ -453,12 +453,14 @@ Adafruit_TCS34725 tcs = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_700MS, TCS347
 
 
  uint16_t r, g, b, c, colorTemp, lux;
-  int i = 8;
-
-  tcs.getRawData(&r, &g, &b, &c);
+  int i = 0;
+    while(i < 5){
+      tcs.getRawData(&r, &g, &b, &c);
   colorTemp = tcs.calculateColorTemperature(r, g, b);
   lux = tcs.calculateLux(r, g, b);
-  
+  i++;
+
+    
   Serial.print("Color Temp: "); Serial.print(colorTemp, DEC); Serial.print(" K - ");
   Serial.print("Lux: "); Serial.print(lux, DEC); Serial.print(" - ");
   Serial.print("R: "); Serial.print(r, DEC); Serial.print(" ");
@@ -466,7 +468,7 @@ Adafruit_TCS34725 tcs = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_700MS, TCS347
   Serial.print("B: "); Serial.print(b, DEC); Serial.print(" ");
   Serial.print("C: "); Serial.print(c, DEC); Serial.print(" ");
   Serial.println(" ");
-
+    }
     
     digitalWrite(PinBLEU, LOW);
     digitalWrite(PinROUGE, LOW);
@@ -474,13 +476,13 @@ Adafruit_TCS34725 tcs = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_700MS, TCS347
     digitalWrite(PinVERT, LOW);
     
 
-  if( colorTemp >= 3900 && colorTemp <= 4400){
+  if( colorTemp >= 4500 && colorTemp <= 5500){
     digitalWrite(PinROUGE, HIGH);
     return ROUGE;
-  }else if( colorTemp >= 3300 && colorTemp <= 3600){
+  }else if( colorTemp >= 3500 && colorTemp <= 4500){
     digitalWrite(PinJAUNE,HIGH);
     return JAUNE;
-  }else if( colorTemp >= 5500 && colorTemp <= 6000){
+  }else if( colorTemp >= 5500 && colorTemp <= 6500){
     digitalWrite(PinBLEU, HIGH);
     return BLEU;
   }
