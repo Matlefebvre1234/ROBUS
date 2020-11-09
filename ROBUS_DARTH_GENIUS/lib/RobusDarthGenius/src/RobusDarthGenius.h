@@ -13,11 +13,12 @@ General librairies for Darth Genius Robus
 #define PI 3.1416
 #define FRONT 0
 #define TURN 1
+#define SONAR 1
 #define CAPTEUR 2
 
 void reinitialiserVariable();
 void LigneDroitePID2();
-void Avancer(int pulse);
+void Avancer(int pulse, bool detect);
 void Virage_1roue(float angle);
 void Virage_2roue(float angle);
 int CmEnPulse (int distance_cm);

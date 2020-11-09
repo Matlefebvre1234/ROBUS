@@ -1,24 +1,11 @@
 #include <Arduino.h>
 #include <LibRobus.h>
+#include <musique.h>
 #include <RobusDarthGenius.h>
-/////////////////////////////////////////////////////////////////////
-//
-// POUR le fonctionnement du robot A et B
-// vitesse pour le robot B a .50
-// vitesse pour le robot A a .70 - .75
-// angle positive doit etre mise plus grande pour le robot B
-// changement du PID
-//
-//  -cheers
-//
-/////////////////////////////////////////////////////////////////////
 void setup()
 {
+    // BOILER PLATE SETUP
     BoardInit();
-    //AX_BuzzerON(5000);
-    AX_BuzzerOFF();
-    pinMode(A0, INPUT);
-    pinMode(A1, INPUT);
     Serial.begin(9600);
     reinitialiserVariable();
 }
@@ -73,15 +60,42 @@ void prendreBallon()
     AttraperBalle();
 }
 void loop()
-{   
+{    
+// Serial.println("dans fonction loop");
+// reinitialiserVariable();
+// distanceSonar= SONAR_GetRange(1);
+// delay(500);
+// Serial.println(distanceSonar);
 
-    delay(1000);
-    if (avertisseurSonore())
-    {
-        Serial.println("START");
-        //prendreBallon();
+float distanceSonar = 0;
+distanceSonar = SONAR_GetRange(1);
+Avancer(CmEnPulse(500), true);
+exit(0);
 
-        testROBOT();
-        exit(0);
-    }
+// while ((distanceSonar >= 90)||(distanceSonar == 0))
+// {   
+//     distanceSonar= SONAR_GetRange(1);
+//     Avancer(CmEnPulse(i));
+//     j = i + j;
+//     Serial.print(j);
+//     Serial.print("     ");
+//     Serial.println(distanceSonar);
+//     if (j >= 480)
+//     {
+//         Serial.println("Fuck");
+//         Virage_2roue(-90);
+//         Avancer(CmEnPulse(80));
+//     }
+// }
+
+// Virage_2roue(-90);
+
+// Virage_2roue(-90);
+//     Avancer(CmEnPulse(80));
+// Virage_2roue(distance_degre);
+// delay(10);
+    
+    // while(1)
+//sensualSong();
+delay(500);
 }

@@ -143,7 +143,7 @@ void LigneDroitePID2()
     MOTOR_SetSpeed(LEFT, g_vit_motg);
 }
 
-void Avancer(int pulse)
+void Avancer(int pulse, bool detect = false)
 {
     int deceleration = pulse - (pulse * 0.1);
     float acceleration_v;
@@ -204,6 +204,23 @@ void Avancer(int pulse)
             g_vit_motg -= acceleration_v * gt_derniere_lu_G_D[LEFT] * ki_correction_in_progress;
             g_vit_motd -= acceleration_v * gt_derniere_lu_G_D[RIGHT] * ki_correction_in_progress;
             ki_correction_in_progress = 0;
+        }
+        
+        distanceSonar = SONAR_GetRange(1);
+        // Serial.print("dans fonction avancer   ");
+        Serial.println("distance du radar: "+String(distanceSonar));
+        
+        if(distanceSonar <= 75 && detect == true)
+        {
+            MOTOR_SetSpeed(RIGHT,0);
+            MOTOR_SetSpeed(LEFT,0);
+            int theDistance = int(sin(20)*distanceSonar);
+            Serial.println("detected at: "+String(theDistance));
+            Virage_2roue(-90);
+            delay(1000);
+            Avancer(theDistance, false);
+            delay(500);
+            return;
         }
         LigneDroitePID2();
     }
