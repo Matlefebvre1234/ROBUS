@@ -9,12 +9,12 @@ float g_vit_motd_Origin = .50;
 float g_vit_motd = g_vit_motd_Origin;
 float g_vit_motg = g_vit_motg_Origin;
 int nbcycle = 0;
-float dist_reel_totD = 0;
-float dist_totalG = 0;
-int dist_reel_totG = 0;
-float derniereValeurLuGPulse = 0;
-int gt_dist_total_reelG_D[2] = {0, 0};
-int gt_derniere_lu_G_D[2] = {0, 0};
+long dist_reel_totD = 0;
+long dist_totalG = 0;
+long dist_reel_totG = 0;
+long derniereValeurLuGPulse = 0;
+long gt_dist_total_reelG_D[2] = {0, 0};
+long gt_derniere_lu_G_D[2] = {0, 0};
 // PID pour robot A
 float kp_Origine = 0.0002;
 float ki_Origine = 0.00004;
@@ -145,7 +145,7 @@ void LigneDroitePID2()
 
 void Avancer(long pulse, bool detect = false)
 {
-    int deceleration = pulse - (pulse * 0.1);
+    long deceleration = pulse - (pulse * 0.1);
     float acceleration_v;
     float v_max = g_vit_motg_Origin;
     float n_pulse_bar = 4200;
@@ -237,7 +237,7 @@ void Avancer(long pulse, bool detect = false)
 
 void Virage_1roue(float angle)
 {
-    int pulse_afaire = angle * 44;
+    long pulse_afaire = angle * 44;
     g_direction = 1;
     if (angle < 0)
     {
@@ -271,8 +271,8 @@ void Virage_2roue(float angle)
     ENCODER_Reset(LEFT);
     ENCODER_Reset(RIGHT);
 
-    int pulse_afaire = abs(angle) * 42.6;
-    int pulse_distribution = pulse_afaire / 2;
+    long pulse_afaire = abs(angle) * 42.6;
+    long pulse_distribution = pulse_afaire / 2;
 
     g_vit_motd = g_direction * -0.14;
     g_vit_motg = g_direction * 0.14;
@@ -295,8 +295,8 @@ void Virage_2roue(float angle)
     Serial.println(gt_derniere_lu_G_D[roue_maitre]);
 
     // CORRECTION D'ERREUR
-    int pulse_erreur_g = pulse_distribution - abs(gt_dist_total_reelG_D[LEFT]) - abs(gt_derniere_lu_G_D[LEFT]);
-    int pulse_erreur_d = pulse_distribution - abs(gt_dist_total_reelG_D[RIGHT]) - abs(gt_derniere_lu_G_D[RIGHT]);
+    long pulse_erreur_g = pulse_distribution - abs(gt_dist_total_reelG_D[LEFT]) - abs(gt_derniere_lu_G_D[LEFT]);
+    long pulse_erreur_d = pulse_distribution - abs(gt_dist_total_reelG_D[RIGHT]) - abs(gt_derniere_lu_G_D[RIGHT]);
     if (pulse_erreur_d != 0)
     {
         MOTOR_SetSpeed(RIGHT, (roue_maitre == RIGHT ? -.30 : .30));
@@ -355,7 +355,7 @@ void testROBOT()
     for (size_t i = 0; i < 13; i++)
     {
         reinitialiserVariable();
-        int distance_degre = instructions[i][0];
+        long distance_degre = instructions[i][0];
         int action = instructions[i][1];
         switch (action)
         {
