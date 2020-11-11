@@ -15,6 +15,7 @@ General librairies for Darth Genius Robus
 #define TURN 1
 #define SONAR 1
 #define CAPTEUR 2
+#define PLANCHER 0
 #define JAUNE 1
 #define BLEU 2
 #define ROUGE 3

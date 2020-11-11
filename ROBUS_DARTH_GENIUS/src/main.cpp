@@ -91,8 +91,8 @@ void loop()
     }
     Serial.println("Start");
     
-    Avancer(CmEnPulse(40), false);
-    Avancer(CmEnPulse(420), true);
+    Avancer(CmEnPulse(15), false);
+    Avancer(CmEnPulse(445), true);
     // delay(500);
     //sensualSong();
     //sensualSong();
