@@ -1,6 +1,6 @@
 #include <Arduino.h>
 #include <LibRobus.h>
-#include <musique.h>
+#include <MusiqueRobus.h>
 #include <RobusDarthGenius.h>
 void setup()
 {
@@ -72,44 +72,29 @@ void prendreBallon()
 void loop()
 {
     delay(1000);
-    prendreBallon();
+    reinitialiserVariable();
+    //prendreBallon();
+    float distanceSonar = 0;
+    distanceSonar = SONAR_GetRange(1);
+    delay(500);
+    Serial.println(String(distanceSonar));
+    //testROBOT();
+    //distanceSonar = SONAR_GetRange(1);
+    int detected = 0;
+    while (detected < 2)
+    {
+        if(!avertisseurSonore())
+            detected = 0;
+        else
+            detected += 1;
+        delay(500);
+    }
+    Serial.println("Start");
     
-// Serial.println("dans fonction loop");
-// reinitialiserVariable();
-// distanceSonar= SONAR_GetRange(1);
-// delay(500);
-// Serial.println(distanceSonar);
-// float distanceSonar = 0;
-// distanceSonar = SONAR_GetRange(1);
-// Avancer(CmEnPulse(200), true);
-// Avancer(CmEnPulse(200), true);
-// Avancer(CmEnPulse(75), true);
-// delay(500);
-// exit(0);
-
-// while ((distanceSonar >= 90)||(distanceSonar == 0))
-// {   
-//     distanceSonar= SONAR_GetRange(1);
-//     Avancer(CmEnPulse(i));
-//     j = i + j;
-//     Serial.print(j);
-//     Serial.print("     ");
-//     Serial.println(distanceSonar);
-//     if (j >= 480)
-//     {
-//         Serial.println("Fuck");
-//         Virage_2roue(-90);
-//         Avancer(CmEnPulse(80));
-//     }
-// }
-
-// Virage_2roue(-90);
-
-// Virage_2roue(-90);
-//     Avancer(CmEnPulse(80));
-// Virage_2roue(distance_degre);
-// delay(10);
-    
-    // while(1)
-//sensualSong();
+    Avancer(CmEnPulse(40), false);
+    Avancer(CmEnPulse(420), true);
+    // delay(500);
+    //sensualSong();
+    //sensualSong();
+    exit(0);
 }
