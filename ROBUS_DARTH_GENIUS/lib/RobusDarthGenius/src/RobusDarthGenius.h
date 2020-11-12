@@ -31,6 +31,7 @@ void Avancer(long pulse, bool detect);
 void Virage_1roue(float angle);
 void Virage_2roue(float angle);
 long CmEnPulse (int distance_cm);
+long PulseEnCM (long pulse);
 void reinitialiserVariable();
 bool avertisseurSonore();
 void RelacherBalle();

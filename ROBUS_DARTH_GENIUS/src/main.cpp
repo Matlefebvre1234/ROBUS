@@ -80,19 +80,31 @@ void loop()
     Serial.println(String(distanceSonar));
     //testROBOT();
     //distanceSonar = SONAR_GetRange(1);
+    
+    digitalWrite(PinBLEU, LOW);
+    digitalWrite(PinROUGE, LOW);
+    digitalWrite(PinJAUNE, LOW);
+    digitalWrite(PinVERT, LOW);
+    digitalWrite(PinBLEU, HIGH);
+
     int detected = 0;
     while (detected < 2)
     {
-        if(!avertisseurSonore())
+        if(!avertisseurSonore()) {
+            digitalWrite(PinJAUNE, LOW);
             detected = 0;
-        else
+        }
+        else{
             detected += 1;
+            digitalWrite(PinJAUNE, HIGH);
+        }
         delay(500);
     }
+    digitalWrite(PinJAUNE, LOW);
     Serial.println("Start");
-    
-    Avancer(CmEnPulse(15), false);
-    Avancer(CmEnPulse(445), true);
+    digitalWrite(PinROUGE, HIGH);
+    Avancer(CmEnPulse(30), false);
+    Avancer(CmEnPulse(440), true);
     // delay(500);
     //sensualSong();
     //sensualSong();

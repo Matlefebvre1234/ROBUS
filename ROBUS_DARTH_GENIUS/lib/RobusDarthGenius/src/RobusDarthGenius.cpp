@@ -6,8 +6,8 @@
 
 int g_direction = 1;
 int vitesse = 300;
-float g_vit_motg_Origin = .60;
-float g_vit_motd_Origin = .60;
+float g_vit_motg_Origin = .50;
+float g_vit_motd_Origin = .50;
 float g_vit_motd = g_vit_motd_Origin;
 float g_vit_motg = g_vit_motg_Origin;
 int nbcycle = 0;
@@ -211,9 +211,12 @@ void Avancer(long pulse, bool detect = false)
             distanceSonar = SONAR_GetRange(1);
             if(distanceSonar <= 62)
             {
+                digitalWrite(PinROUGE, LOW);
+                digitalWrite(PinJAUNE, HIGH);
                 long distanceTillEnd = pulse - dist_reel_totG;
+                long _dist_reel_totG_F = dist_reel_totG;
                 Serial.println("fouund at: " + String(dist_reel_totG));
-                if(dist_reel_totG <= CmEnPulse(225) && dist_reel_totG >= CmEnPulse(185)) {
+                if(dist_reel_totG <= CmEnPulse(205) && dist_reel_totG >= CmEnPulse(145)) {
                     MOTOR_SetSpeed(RIGHT,0);
                     MOTOR_SetSpeed(LEFT,0);
                     delay(20000);
@@ -225,8 +228,10 @@ void Avancer(long pulse, bool detect = false)
                     Virage_2roue(-90);
                     delay(500);
                     reinitialiserVariable();
-                    Avancer(CmEnPulse(77), false);
+                    Avancer(CmEnPulse(85), false);
                     Virage_1roueDroite(-92);
+                    digitalWrite(PinJAUNE, LOW);
+                    digitalWrite(PinVERT, HIGH);
                     return;
                 }
                 MOTOR_SetSpeed(RIGHT,0);
@@ -239,11 +244,13 @@ void Avancer(long pulse, bool detect = false)
                 Virage_2roue(-90);
                 delay(500);
                 reinitialiserVariable();
-                Avancer(CmEnPulse(77), false);
+                Avancer(CmEnPulse(80), false);
                 delay(500);
                 Virage_1roueDroite(-92);
-                if(dist_reel_totG > CmEnPulse(225))
+                Serial.println("CM: " + String(PulseEnCM(_dist_reel_totG_F)));
+                if(_dist_reel_totG_F > CmEnPulse(300))
                     Avancer(distanceTillEnd-CmEnPulse(theDistance-5), false);
+                digitalWrite(PinVERT, HIGH);
                 return;
             }
         }
@@ -361,6 +368,11 @@ long CmEnPulse(int distance_cm)
 {
     long distancePulse = (3200 / 23.9389 * distance_cm);
     return distancePulse;
+}
+long PulseEnCM(long pulse)
+{
+    long distanceCM = (23.9389/3200 * pulse);
+    return distanceCM;
 }
 void testROBOT()
 {
