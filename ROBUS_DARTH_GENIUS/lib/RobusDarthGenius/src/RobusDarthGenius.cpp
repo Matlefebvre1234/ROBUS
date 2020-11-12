@@ -250,6 +250,7 @@ void Avancer(long pulse, bool detect = false)
                 Serial.println("CM: " + String(PulseEnCM(_dist_reel_totG_F)));
                 if(_dist_reel_totG_F > CmEnPulse(300))
                     Avancer(distanceTillEnd-CmEnPulse(theDistance-5), false);
+                digitalWrite(PinJAUNE, LOW);
                 digitalWrite(PinVERT, HIGH);
                 return;
             }
