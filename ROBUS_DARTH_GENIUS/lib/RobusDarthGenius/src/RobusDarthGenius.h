@@ -24,10 +24,17 @@ General librairies for Darth Genius Robus
 #define PinBLEU 9
 #define PinROUGE 11
 #define PinVERT 13
+#define CPT_LIGNE_1 2
+#define CPT_LIGNE_2 3
+#define CPT_LIGNE_3 4
+#define CPT_LIGNE_4 5
+#define CPT_LIGNE_5 6
+#define CPT_LIGNE_6 7
+
 
 void reinitialiserVariable();
 void LigneDroitePID2();
-void Avancer(long pulse, bool detect);
+void Avancer(long pulse);
 void Virage_1roue(float angle);
 void Virage_2roue(float angle);
 long CmEnPulse (int distance_cm);

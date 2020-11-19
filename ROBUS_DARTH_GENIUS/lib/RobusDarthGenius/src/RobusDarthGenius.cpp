@@ -145,7 +145,7 @@ void LigneDroitePID2()
     MOTOR_SetSpeed(LEFT, g_vit_motg);
 }
 
-void Avancer(long pulse, bool detect = false)
+void Avancer(long pulse)
 {
     long deceleration = pulse - (pulse * 0.1);
     float acceleration_v;
@@ -207,56 +207,9 @@ void Avancer(long pulse, bool detect = false)
             g_vit_motd -= acceleration_v * gt_derniere_lu_G_D[RIGHT] * ki_correction_in_progress;
             ki_correction_in_progress = 0;
         }
-        if(detect) {
-            distanceSonar = SONAR_GetRange(1);
-            if(distanceSonar <= 62)
-            {
-                long distanceTillEnd = pulse - dist_reel_totG;
-                Serial.println("fouund at: " + String(dist_reel_totG));
-                if(dist_reel_totG <= CmEnPulse(225) && dist_reel_totG >= CmEnPulse(185)) {
-                    MOTOR_SetSpeed(RIGHT,0);
-                    MOTOR_SetSpeed(LEFT,0);
-                    delay(20000);
-                    reinitialiserVariable();
-                    int theDistance = int((distanceSonar/2)-5);
-                    Avancer(CmEnPulse(theDistance-5), false);
-                    delay(1000);
-                    reinitialiserVariable();
-                    Virage_2roue(-90);
-                    delay(500);
-                    reinitialiserVariable();
-                    Avancer(CmEnPulse(77), false);
-                    Virage_1roueDroite(-92);
-                    return;
-                }
-                MOTOR_SetSpeed(RIGHT,0);
-                MOTOR_SetSpeed(LEFT,0);
-                reinitialiserVariable();
-                int theDistance = int((distanceSonar/2)-5);
-                Avancer(CmEnPulse(theDistance-5), false);
-                delay(1000);
-                reinitialiserVariable();
-                Virage_2roue(-90);
-                delay(500);
-                reinitialiserVariable();
-                Avancer(CmEnPulse(77), false);
-                delay(500);
-                Virage_1roueDroite(-92);
-                if(dist_reel_totG > CmEnPulse(225))
-                    Avancer(distanceTillEnd-CmEnPulse(theDistance-5), false);
-                return;
-            }
-        }
         LigneDroitePID2();
     }
     Serial.println("FIN: " + String(dist_reel_totG));
-    if(detect)
-    {
-        Virage_2roue(-90);
-        Avancer(CmEnPulse(77),false);    
-    }
-    
-
     MOTOR_SetSpeed(RIGHT, 0);
     MOTOR_SetSpeed(LEFT, 0);
     reinitialiserVariable();
