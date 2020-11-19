@@ -13,6 +13,13 @@ void setup()
     pinMode(PinJAUNE, OUTPUT);
     pinMode(PinROUGE, OUTPUT);
     pinMode(PinVERT, OUTPUT);
+    // pin mode pour les suiveur de ligne
+    pinMode(CPT_LIGNE_1, INPUT);
+    pinMode(CPT_LIGNE_2, INPUT);
+    pinMode(CPT_LIGNE_3, INPUT);
+    pinMode(CPT_LIGNE_4, INPUT);
+    pinMode(CPT_LIGNE_5, INPUT);
+    pinMode(CPT_LIGNE_6, INPUT);
 
 }
 
@@ -26,44 +33,44 @@ void prendreBallon()
     Virage_2roue(93);
     delay(2000);
     reinitialiserVariable();
-    Avancer(CmEnPulse(25), false);
+    Avancer(CmEnPulse(25));
     reinitialiserVariable();
     Virage_2roue(-90);
     reinitialiserVariable();
-    Avancer(CmEnPulse(70), false);
+    Avancer(CmEnPulse(70));
     delay(1000); //couleur
     couleur = DetectionCouleur();
     reinitialiserVariable();
-    Avancer(CmEnPulse(150), false);
+    Avancer(CmEnPulse(150));
     reinitialiserVariable();
     AttraperBalle();
     delay(500);
 
     if (couleur == JAUNE) //jaune
     {
-        Avancer(CmEnPulse(84), false);
+        Avancer(CmEnPulse(84));
         reinitialiserVariable();
         Virage_2roue(93);
         reinitialiserVariable();
-        Avancer(CmEnPulse(25), false);
+        Avancer(CmEnPulse(25));
         reinitialiserVariable();
     }
     else if (couleur == BLEU ) //bleu
     {
-        Avancer(CmEnPulse(163), false);
+        Avancer(CmEnPulse(163));
         reinitialiserVariable();
         Virage_2roue(-90);
         reinitialiserVariable();
-        Avancer(CmEnPulse(25), false);
+        Avancer(CmEnPulse(25));
         reinitialiserVariable();
     }
     else if (couleur == ROUGE) //rouge
     {
-        Avancer(CmEnPulse(230), false);
+        Avancer(CmEnPulse(230));
         reinitialiserVariable();
         Virage_2roue(93);
         reinitialiserVariable();
-        Avancer(CmEnPulse(25), false);
+        Avancer(CmEnPulse(25));
         reinitialiserVariable();
     }
     AttraperBalle();
@@ -71,30 +78,5 @@ void prendreBallon()
 
 void loop()
 {
-    delay(1000);
-    reinitialiserVariable();
-    //prendreBallon();
-    float distanceSonar = 0;
-    distanceSonar = SONAR_GetRange(1);
-    delay(500);
-    Serial.println(String(distanceSonar));
-    //testROBOT();
-    //distanceSonar = SONAR_GetRange(1);
-    int detected = 0;
-    while (detected < 2)
-    {
-        if(!avertisseurSonore())
-            detected = 0;
-        else
-            detected += 1;
-        delay(500);
-    }
-    Serial.println("Start");
-    
-    Avancer(CmEnPulse(15), false);
-    Avancer(CmEnPulse(445), true);
-    // delay(500);
-    //sensualSong();
-    //sensualSong();
-    exit(0);
+    SuivreLigne();
 }

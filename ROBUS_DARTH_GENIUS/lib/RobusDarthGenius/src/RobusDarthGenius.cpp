@@ -6,8 +6,8 @@
 
 int g_direction = 1;
 int vitesse = 300;
-float g_vit_motg_Origin = .60;
-float g_vit_motd_Origin = .60;
+float g_vit_motg_Origin = .10;
+float g_vit_motd_Origin = .10;
 float g_vit_motd = g_vit_motd_Origin;
 float g_vit_motg = g_vit_motg_Origin;
 int nbcycle = 0;
@@ -38,6 +38,53 @@ uint16_t dis10bits = 0;
 float fDistance = 0;
 float distanceSonar = 0;
 
+int cl1 = 3;
+int cl2 = 2;
+int cl3 = 1;
+int cl4 = -1;
+int cl5 = -2;
+int cl6 = -3;
+void SuivreLigne() {
+    g_vit_motg = g_vit_motg_Origin;
+    g_vit_motd = g_vit_motd_Origin;
+    bool cptLigneRead1 = digitalRead(CPT_LIGNE_1);
+    bool cptLigneRead2 = digitalRead(CPT_LIGNE_2);
+    bool cptLigneRead3 = digitalRead(CPT_LIGNE_3);
+    bool cptLigneRead4 = digitalRead(CPT_LIGNE_4);
+    bool cptLigneRead5 = digitalRead(CPT_LIGNE_5);
+    bool cptLigneRead6 = digitalRead(CPT_LIGNE_6);
+    Serial.println("cpt 1: " + String(cptLigneRead1) + " cpt 2: " + String(cptLigneRead2) + " cpt 3: " + String(cptLigneRead3) 
+            + " cpt 4: " + String(cptLigneRead4) + " cpt 5: " + String(cptLigneRead5) + " cpt 6: " + String(cptLigneRead6));
+    int erreurLigne = 0;
+    if (!cptLigneRead6)
+        erreurLigne += cl6;
+    if (!cptLigneRead5)
+        erreurLigne += cl5;
+    if (!cptLigneRead4)
+        erreurLigne += cl4;
+    if (!cptLigneRead3)
+        erreurLigne += cl3;
+    if (!cptLigneRead2)
+        erreurLigne += cl2;
+    if (!cptLigneRead1)
+        erreurLigne += cl1;
+    if(cptLigneRead6 && cptLigneRead5 || cptLigneRead1 && cptLigneRead2) {
+        float fac = 0.0975;
+        g_vit_motg += erreurLigne*fac/2;
+        g_vit_motd -= erreurLigne*fac/2;
+    }
+    else if(cptLigneRead6 || cptLigneRead1) {
+        float fac = 0.135;
+        g_vit_motg += erreurLigne*fac/2;
+        g_vit_motd -= erreurLigne*fac/2;
+    } else {
+        float fac = 0.05;
+        g_vit_motg += erreurLigne*fac/2;
+        g_vit_motd -= erreurLigne*fac/2;
+    }
+    MOTOR_SetSpeed(RIGHT, g_vit_motd);
+    MOTOR_SetSpeed(LEFT, g_vit_motg);
+}
 //fonctions à mettre avec les autres dans un header
 void RelacherBalle()
 {
