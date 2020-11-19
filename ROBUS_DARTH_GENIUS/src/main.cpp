@@ -78,5 +78,9 @@ void prendreBallon()
 
 void loop()
 {
-    SuivreLigne();
+    reinitialiserVariable();
+    Avancer(CmEnPulse(45));
+    reinitialiserVariable();
+    Avancer(CmEnPulse(450));
+    exit(0);
 }

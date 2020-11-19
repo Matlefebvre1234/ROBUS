@@ -162,7 +162,8 @@ void LigneDroitePID2()
     dist_totalG += vitesseLuG;
     dist_reel_totD += vitesseLuD;
     dist_reel_totG += vitesseLuG;
-
+    //Serial.println("165: " + String(gt_dist_total_reelG_D[RIGHT]));
+    //Serial.println("166: " + String(gt_dist_total_reelG_D[LEFT]));
     // trouve la direction vers la roue tourne pour chacune ( avant positif, arière négatif)
     int direction_droite = g_vit_motd > 0 ? 1 : -1;
     int direction_gauche = g_vit_motg > 0 ? 1 : -1;
@@ -187,7 +188,6 @@ void LigneDroitePID2()
 
     // FIN NOUVEAU
     delay(30);
-
     MOTOR_SetSpeed(RIGHT, g_vit_motd);
     MOTOR_SetSpeed(LEFT, g_vit_motg);
 }
