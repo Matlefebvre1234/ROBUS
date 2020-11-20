@@ -32,6 +32,7 @@ void ArduinoX::buzzerOn(uint32_t freq, uint64_t duration){
 
 void ArduinoX::buzzerOff(){
   digitalWrite(BUZZER_PIN, LOW);
+  noTone(BUZZER_PIN);
 }
 
 float ArduinoX::getCurrent(){

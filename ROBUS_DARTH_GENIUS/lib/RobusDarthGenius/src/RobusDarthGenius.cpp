@@ -2,6 +2,7 @@
 #include <LibRobus.h>
 #include <RobusDarthGenius.h>
 #include <Adafruit_TCS34725.h>
+#include "Arduino.h"
 
 
 int g_direction = 1;
@@ -213,7 +214,7 @@ void Avancer(long pulse)
     LigneDroitePID2();
     int ki_correction_in_progress = 0;
     bool humainDetecter =false;
-    while (dist_reel_totG < pulse - derniereValeurLuGPulse)
+    while (1) //dist_reel_totG < pulse - derniereValeurLuGPulse
     {
         humainDetecter =false;
             distanceSonar = SONAR_GetRange(1);
@@ -222,14 +223,14 @@ void Avancer(long pulse)
         else
         {
             
-            delay(1000);
+            delay(100);
             distanceSonar = SONAR_GetRange(1);
             if( distanceSonar < 100) humainDetecter =true;
         }
         
         if(humainDetecter)
         {
-        // acceleration du début
+        /*// acceleration du début
         if (!accel)
         {
             // rien faire car l'acceleration est terminée
@@ -270,7 +271,10 @@ void Avancer(long pulse)
             g_vit_motd -= acceleration_v * gt_derniere_lu_G_D[RIGHT] * ki_correction_in_progress;
             ki_correction_in_progress = 0;
         }
-        LigneDroitePID2();
+        LigneDroitePID2();*/
+        MOTOR_SetSpeed(RIGHT,0.15);
+         MOTOR_SetSpeed(LEFT,0.15);
+
         }else
         {
             
@@ -298,26 +302,44 @@ void Avancer(long pulse)
 
 void buttonPress()
 { 
-    buttonON = !buttonON;
+    //buttonON = !buttonON;
     volatile static unsigned long last_interupt_time =0;
     volatile unsigned long interruptsTime = millis();
-    if(interruptsTime - last_interupt_time > 500 && buttonON == true)
+    bool ButtonHigh =false;
+    int i = 0;
+    if(interruptsTime - last_interupt_time > 500)
     {
-
+        last_interupt_time = interruptsTime;
         MOTOR_SetSpeed(RIGHT,0);
         MOTOR_SetSpeed(LEFT,0);
-        AX_BuzzerON(2000);
-
-        while(buttonON)
-        {
-            delay(1000);
+        AX_BuzzerON();
+        AX_BuzzerON(5000);
+        Serial.println("bontonON");
+        
+        
+        while( i  < 200 ) {
+            i++;
+            Serial.print(i);
+           
+            //Serial.println((millis() - interruptsTime));
         }
-
-        AX_BuzzerOFF();
+        i =0;
+        ButtonHigh = true;
+        
+        while(ButtonHigh)
+        {  Serial.print(analogRead(A0));
+            if(analogRead(A0)> 100) ButtonHigh = false;
+        }
         
     }  
-   last_interupt_time = interruptsTime;
+     
+        AX_BuzzerOFF();
+        
+        Serial.println("bontonOff");
+        buttonON = false;
+        
 
+   last_interupt_time = millis();
 }
 void Virage_1roue(float angle)
 {
