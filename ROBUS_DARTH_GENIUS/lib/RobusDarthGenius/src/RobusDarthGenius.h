@@ -46,4 +46,5 @@ void testROBOT();
 int DetectionCouleur();
 void Virage_1roueDroite(float angle);
 void SuivreLigne();
+void buttonPress();
 #endif //RobusDarthGenius

@@ -20,6 +20,8 @@ void setup()
     pinMode(CPT_LIGNE_4, INPUT);
     pinMode(CPT_LIGNE_5, INPUT);
     pinMode(CPT_LIGNE_6, INPUT);
+     pinMode(2,INPUT);
+    attachInterrupt(0,buttonPress,RISING);
 
 }
 

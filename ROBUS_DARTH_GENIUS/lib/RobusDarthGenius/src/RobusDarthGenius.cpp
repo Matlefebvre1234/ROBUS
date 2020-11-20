@@ -17,6 +17,7 @@ long dist_reel_totG = 0;
 long derniereValeurLuGPulse = 0;
 long gt_dist_total_reelG_D[2] = {0, 0};
 long gt_derniere_lu_G_D[2] = {0, 0};
+bool buttonON =false;
 // PID pour robot A
 float kp_Origine = 0.0002;
 float ki_Origine = 0.00004;
@@ -211,8 +212,23 @@ void Avancer(long pulse)
     Serial.println("DÉBUT: " + String(pulse));
     LigneDroitePID2();
     int ki_correction_in_progress = 0;
+    bool humainDetecter =false;
     while (dist_reel_totG < pulse - derniereValeurLuGPulse)
     {
+        humainDetecter =false;
+            distanceSonar = SONAR_GetRange(1);
+
+         if( distanceSonar < 100) humainDetecter =true;
+        else
+        {
+            
+            delay(1000);
+            distanceSonar = SONAR_GetRange(1);
+            if( distanceSonar < 100) humainDetecter =true;
+        }
+        
+        if(humainDetecter)
+        {
         // acceleration du début
         if (!accel)
         {
@@ -255,6 +271,23 @@ void Avancer(long pulse)
             ki_correction_in_progress = 0;
         }
         LigneDroitePID2();
+        }else
+        {
+            
+            
+            
+            MOTOR_SetSpeed(RIGHT,0);
+            MOTOR_SetSpeed(LEFT,0);
+             g_vit_motd = g_vit_motd_Origin;
+            g_vit_motg = g_vit_motg_Origin;
+            accel = true;
+            reinitialiserVariable();
+
+            
+            
+           
+
+    }
     }
     Serial.println("FIN: " + String(dist_reel_totG));
     MOTOR_SetSpeed(RIGHT, 0);
@@ -262,6 +295,30 @@ void Avancer(long pulse)
     reinitialiserVariable();
 }
 
+
+void buttonPress()
+{ 
+    buttonON = !buttonON;
+    volatile static unsigned long last_interupt_time =0;
+    volatile unsigned long interruptsTime = millis();
+    if(interruptsTime - last_interupt_time > 500 && buttonON == true)
+    {
+
+        MOTOR_SetSpeed(RIGHT,0);
+        MOTOR_SetSpeed(LEFT,0);
+        AX_BuzzerON(2000);
+
+        while(buttonON)
+        {
+            delay(1000);
+        }
+
+        AX_BuzzerOFF();
+        
+    }  
+   last_interupt_time = interruptsTime;
+
+}
 void Virage_1roue(float angle)
 {
     long pulse_afaire = angle * 44;
