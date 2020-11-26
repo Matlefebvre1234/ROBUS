@@ -5,6 +5,7 @@
 #include "Arduino.h"
 
 
+bool steady = true;
 int g_direction = 1;
 int vitesse = 300;
 float g_vit_motg_Origin = .10;
@@ -47,8 +48,7 @@ int cl4 = -1;
 int cl5 = -2;
 int cl6 = -3;
 void SuivreLigne() {
-    g_vit_motg = g_vit_motg_Origin;
-    g_vit_motd = g_vit_motd_Origin;
+    SetOriginalSpeed();
     bool cptLigneRead1 = digitalRead(CPT_LIGNE_1);
     bool cptLigneRead2 = digitalRead(CPT_LIGNE_2);
     bool cptLigneRead3 = digitalRead(CPT_LIGNE_3);
@@ -70,6 +70,21 @@ void SuivreLigne() {
         erreurLigne += cl2;
     if (!cptLigneRead1)
         erreurLigne += cl1;
+    // Virage de 90
+    if(!cptLigneRead1 && !cptLigneRead2 && !cptLigneRead3 && !cptLigneRead4 && cptLigneRead5 && cptLigneRead6)
+    {
+        MOTOR_SetSpeed(RIGHT, g_vit_motd);
+        MOTOR_SetSpeed(LEFT, g_vit_motg);
+        delay(1000);
+        Virage_2roue(90);
+    }
+    if(!cptLigneRead6 && !cptLigneRead5 && !cptLigneRead3 && !cptLigneRead4 && cptLigneRead1 && cptLigneRead2)
+    {
+        MOTOR_SetSpeed(RIGHT, g_vit_motd);
+        MOTOR_SetSpeed(LEFT, g_vit_motg);
+        delay(1000);
+        Virage_2roue(-90);
+    }
     if(cptLigneRead6 && cptLigneRead5 || cptLigneRead1 && cptLigneRead2) {
         float fac = 0.0975;
         g_vit_motg += erreurLigne*fac/2;
@@ -86,6 +101,16 @@ void SuivreLigne() {
     }
     MOTOR_SetSpeed(RIGHT, g_vit_motd);
     MOTOR_SetSpeed(LEFT, g_vit_motg);
+}
+bool IsSteady() {
+    return steady;
+}
+bool SetSteady(bool isSteady) {
+    return steady = isSteady;
+}
+void SetOriginalSpeed() {
+    g_vit_motd = g_vit_motd_Origin;
+    g_vit_motg = g_vit_motg_Origin;
 }
 //fonctions à mettre avec les autres dans un header
 void RelacherBalle()
@@ -196,102 +221,89 @@ void LigneDroitePID2()
 
 void Avancer(long pulse)
 {
-    long deceleration = pulse - (pulse * 0.1);
-    float acceleration_v;
-    float v_max = g_vit_motg_Origin;
-    float n_pulse_bar = 4200;
-    bool accel = true;
     g_vit_motd = 0.22;
     g_vit_motg = 0.22;
-
-    if (pulse <= CmEnPulse(60))
-    {
-        v_max = .30;
-    }
+    long deceleration = pulse - (pulse * 0.1);
+    float acceleration_v;
+    bool accel = true;
+    float n_pulse_bar = 4200;
+    float v_max = (pulse <= CmEnPulse(60)) ? .30 : g_vit_motg_Origin;
+    int ki_correction_in_progress = 0;
+    bool humainDetecter =false;
 
     acceleration_v = (v_max - g_vit_motd) / n_pulse_bar;
     Serial.println("DÉBUT: " + String(pulse));
     LigneDroitePID2();
-    int ki_correction_in_progress = 0;
-    bool humainDetecter =false;
     while (1) //dist_reel_totG < pulse - derniereValeurLuGPulse
     {
         humainDetecter =false;
-            distanceSonar = SONAR_GetRange(1);
-
-         if( distanceSonar < 100) humainDetecter =true;
+        distanceSonar = SONAR_GetRange(1);
+        if( distanceSonar < 100) 
+            humainDetecter =true;
         else
         {
-            
             delay(100);
             distanceSonar = SONAR_GetRange(1);
-            if( distanceSonar < 100) humainDetecter =true;
+            if( distanceSonar < 100) 
+                humainDetecter =true;
         }
         
         if(humainDetecter)
         {
-        /*// acceleration du début
-        if (!accel)
-        {
-            // rien faire car l'acceleration est terminée
-        }
-        else if (g_vit_motg >= v_max && accel == true)
-        {
-            accel = false;
-        }
-        else if (ki_correction_in_progress < 3)
-        {
-            ki_correction_in_progress++;
-            // perte de un tour d'acceleration pour laisser le PID se calibrer
+            /*// acceleration du début
+            if (!accel)
+            {
+                // rien faire car l'acceleration est terminée
+            }
+            else if (g_vit_motg >= v_max && accel == true)
+            {
+                accel = false;
+            }
+            else if (ki_correction_in_progress < 3)
+            {
+                ki_correction_in_progress++;
+                // perte de un tour d'acceleration pour laisser le PID se calibrer
+            }
+            else
+            {
+                // augmentation de la vitesse
+                g_vit_motg += acceleration_v * gt_derniere_lu_G_D[LEFT];
+                g_vit_motd += acceleration_v * gt_derniere_lu_G_D[RIGHT];
+                ki_correction_in_progress = 0;
+            }
+
+            //decceleration
+            if (accel)
+            {
+            }
+            else if (ki_correction_in_progress < 3)
+            {
+                ki_correction_in_progress++;
+                // perte de un tour d'acceleration pour laisser le PID se calibrer
+            }
+            else if (pulse - dist_reel_totG < n_pulse_bar && g_vit_motd > 0 && g_vit_motd > 0)
+            {
+                kiB = kiB_dec;
+                kpB = kpB_dec;
+                ki = ki_dec;
+                kp = kp_dec;
+                g_vit_motg -= acceleration_v * gt_derniere_lu_G_D[LEFT] * ki_correction_in_progress;
+                g_vit_motd -= acceleration_v * gt_derniere_lu_G_D[RIGHT] * ki_correction_in_progress;
+                ki_correction_in_progress = 0;
+            }
+            LigneDroitePID2();*/
+            MOTOR_SetSpeed(RIGHT,0.15);
+            MOTOR_SetSpeed(LEFT,0.15);
         }
         else
-        {
-            // augmentation de la vitesse
-            g_vit_motg += acceleration_v * gt_derniere_lu_G_D[LEFT];
-            g_vit_motd += acceleration_v * gt_derniere_lu_G_D[RIGHT];
-            ki_correction_in_progress = 0;
-        }
-
-        //decceleration
-        if (accel)
-        {
-        }
-        else if (ki_correction_in_progress < 3)
-        {
-            ki_correction_in_progress++;
-            // perte de un tour d'acceleration pour laisser le PID se calibrer
-        }
-        else if (pulse - dist_reel_totG < n_pulse_bar && g_vit_motd > 0 && g_vit_motd > 0)
-        {
-            kiB = kiB_dec;
-            kpB = kpB_dec;
-            ki = ki_dec;
-            kp = kp_dec;
-            g_vit_motg -= acceleration_v * gt_derniere_lu_G_D[LEFT] * ki_correction_in_progress;
-            g_vit_motd -= acceleration_v * gt_derniere_lu_G_D[RIGHT] * ki_correction_in_progress;
-            ki_correction_in_progress = 0;
-        }
-        LigneDroitePID2();*/
-        MOTOR_SetSpeed(RIGHT,0.15);
-         MOTOR_SetSpeed(LEFT,0.15);
-
-        }else
-        {
-            
-            
-            
+        {   
             MOTOR_SetSpeed(RIGHT,0);
             MOTOR_SetSpeed(LEFT,0);
              g_vit_motd = g_vit_motd_Origin;
             g_vit_motg = g_vit_motg_Origin;
             accel = true;
             reinitialiserVariable();
-
-            
-            
-           
-
-    }
+        }
     }
     Serial.println("FIN: " + String(dist_reel_totG));
     MOTOR_SetSpeed(RIGHT, 0);

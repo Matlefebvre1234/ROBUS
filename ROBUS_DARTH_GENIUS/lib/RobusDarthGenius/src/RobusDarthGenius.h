@@ -47,4 +47,7 @@ int DetectionCouleur();
 void Virage_1roueDroite(float angle);
 void SuivreLigne();
 void buttonPress();
+bool IsSteady();
+bool SetSteady(bool isSteady);
+void SetOriginalSpeed();
 #endif //RobusDarthGenius

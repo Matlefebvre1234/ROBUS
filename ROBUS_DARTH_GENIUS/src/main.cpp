@@ -22,8 +22,7 @@ void setup()
     pinMode(CPT_LIGNE_6, INPUT);
      pinMode(2,INPUT);
     attachInterrupt(0,buttonPress,RISING);
-    
-
+    SetSteady(true);
 }
 
 void prendreBallon()
@@ -81,12 +80,27 @@ void prendreBallon()
 
 void loop()
 {
-    //reinitialiserVariable();
-    //Avancer(CmEnPulse(45));
-   //reinitialiserVariable();
-    //Avancer(CmEnPulse(450));
-    //exit(0);
-   MOTOR_SetSpeed(RIGHT, 0.2);
-    MOTOR_SetSpeed(LEFT, 0.2);
- 
+    delay(1500);
+    while (!IsSteady())
+    {
+        bool humainDetecter = false;
+        if(SONAR_GetRange(1) < 100) 
+        {
+            humainDetecter =true;
+        }
+        else {
+            delay(100);
+            humainDetecter = SONAR_GetRange(1) < 100;
+        }
+
+        if(humainDetecter)
+        {
+            SuivreLigne();
+        }
+        else
+        {   
+            MOTOR_SetSpeed(RIGHT,0);
+            MOTOR_SetSpeed(LEFT,0);
+        }
+    }
 }
