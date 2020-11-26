@@ -2,12 +2,21 @@
 #include <LibRobus.h>
 #include <musique.h>
 #include <RobusDarthGenius.h>
+#include <SPI.h>
+#include <MFRC522.h>
+
+#define SS_PIN 53
+#define RST_PIN 5
+MFRC522 mfrc522(SS_PIN, RST_PIN); // Create MFRC522 instance.
+
 void setup()
 {
     // BOILER PLATE SETUP
-    BoardInit();
+    BoardInit();// Initiate a serial communication
+    SPI.begin();      // Initiate  SPI bus
+    mfrc522.PCD_Init();   // Initiate MFRC522
+    Serial.println("Approximate your card to the reader...");
     Serial.begin(9600);
-    reinitialiserVariable();
     // Allumer les PIN pour la detection de couleur
     pinMode(PinBLEU, OUTPUT);
     pinMode(PinJAUNE, OUTPUT);
@@ -16,6 +25,7 @@ void setup()
 
 }
 
+/*
 void prendreBallon()
 {
     int couleur = 0;
@@ -112,4 +122,70 @@ void loop()
     
     // while(1)
 //sensualSong();
+}*/
+ 
+ 
+void loop() 
+{
+  // Look for new cards
+  if ( ! mfrc522.PICC_IsNewCardPresent()) 
+  {
+    return;
+  }
+  // Select one of the cards
+  if ( ! mfrc522.PICC_ReadCardSerial()) 
+  {
+    return;
+  }
+  //Show UID on serial monitor
+  Serial.print("UID tag :");
+  String content= "";
+  for (byte i = 0; i < mfrc522.uid.size; i++) 
+  {
+     Serial.print(mfrc522.uid.uidByte[i] < 0x10 ? " 0" : " ");
+     Serial.print(mfrc522.uid.uidByte[i], HEX);
+     content.concat(String(mfrc522.uid.uidByte[i] < 0x10 ? " 0" : " "));
+     content.concat(String(mfrc522.uid.uidByte[i], HEX));
+  }
+  Serial.println();
+  Serial.print("Message : ");
+  content.toUpperCase();
+  if (content.substring(1) == Puce1) //change here the UID of the card/cards that you want to give access
+  {
+    Serial.println("Puce1");
+    Serial.println();
+    digitalWrite(PinROUGE,HIGH);
+    delay(3000);
+  
+
+  }
+  else if (content.substring(1) == Puce2)
+  {
+    Serial.println("Puce2");
+    Serial.println();
+    digitalWrite(PinBLEU,HIGH);
+    delay(3000);
+  }
+ else if (content.substring(1) == Puce3)
+  {
+    Serial.println("Puce3");
+    Serial.println();
+    digitalWrite(PinJAUNE,HIGH);
+    delay(3000);
+  }
+  else if (content.substring(1) == Puce4)
+  {
+    Serial.println("Puce4");
+    Serial.println();
+    digitalWrite(PinVERT,HIGH);
+    delay(3000);
+  }
+ else   {
+    Serial.println(" Acces Denied");
+    delay(3000);
+  }
+  digitalWrite(PinROUGE,LOW);
+  digitalWrite(PinBLEU,LOW);
+  digitalWrite(PinVERT,LOW);
+  digitalWrite(PinJAUNE,LOW);
 }

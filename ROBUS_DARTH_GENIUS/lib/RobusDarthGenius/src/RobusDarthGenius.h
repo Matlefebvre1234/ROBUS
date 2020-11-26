@@ -10,8 +10,6 @@ General librairies for Darth Genius Robus
 #ifndef RobusDarthGenius_H_
 #define RobusDarthGenius_H_
 // déclaration des variables
-#define PI 3.1416
-#define FRONT 0
 #define TURN 1
 #define SONAR 1
 #define CAPTEUR 2
@@ -23,6 +21,14 @@ General librairies for Darth Genius Robus
 #define PinBLEU 9
 #define PinROUGE 11
 #define PinVERT 13
+#define Puce1 "3C B5 FC 22"
+#define Puce2 "5C 8C 24 22"
+#define Puce3 "4C D1 B2 21"
+#define Puce4 "07 83 D2 C6"
+#define Carte1 "49 2B 25 BD"
+#define Carte2 "79 89 60 B2"
+#define Carte3 "09 C8 55 B3"
+#define Carte4 "49 F9 71 B2"
 
 void reinitialiserVariable();
 void LigneDroitePID2();
