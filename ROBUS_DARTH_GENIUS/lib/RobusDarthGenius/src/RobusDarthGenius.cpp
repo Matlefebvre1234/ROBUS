@@ -40,21 +40,35 @@ int g_pince_fermer[2] = {107, 112};
 uint16_t dis10bits = 0;
 float fDistance = 0;
 float distanceSonar = 0;
-
+// variable pour le module suiveur de ligne
 int cl1 = 3;
 int cl2 = 2;
 int cl3 = 1;
 int cl4 = -1;
 int cl5 = -2;
 int cl6 = -3;
+// variables pour la lecture des ligne
+bool cptLigneRead1;
+bool cptLigneRead2;
+bool cptLigneRead3;
+bool cptLigneRead4;
+bool cptLigneRead5;
+bool cptLigneRead6;
+
+void readCptLigne() {    
+    cptLigneRead1 = digitalRead(CPT_LIGNE_1);
+    cptLigneRead2 = digitalRead(CPT_LIGNE_2);
+    cptLigneRead3 = digitalRead(CPT_LIGNE_3);
+    cptLigneRead4 = digitalRead(CPT_LIGNE_4);
+    cptLigneRead5 = digitalRead(CPT_LIGNE_5);
+    cptLigneRead6 = digitalRead(CPT_LIGNE_6);
+}
+void CheckIntersection() {
+    
+}
 void SuivreLigne() {
     SetOriginalSpeed();
-    bool cptLigneRead1 = digitalRead(CPT_LIGNE_1);
-    bool cptLigneRead2 = digitalRead(CPT_LIGNE_2);
-    bool cptLigneRead3 = digitalRead(CPT_LIGNE_3);
-    bool cptLigneRead4 = digitalRead(CPT_LIGNE_4);
-    bool cptLigneRead5 = digitalRead(CPT_LIGNE_5);
-    bool cptLigneRead6 = digitalRead(CPT_LIGNE_6);
+    readCptLigne();
     Serial.println("cpt 1: " + String(cptLigneRead1) + " cpt 2: " + String(cptLigneRead2) + " cpt 3: " + String(cptLigneRead3) 
             + " cpt 4: " + String(cptLigneRead4) + " cpt 5: " + String(cptLigneRead5) + " cpt 6: " + String(cptLigneRead6));
     int erreurLigne = 0;

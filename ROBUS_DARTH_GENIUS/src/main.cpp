@@ -9,10 +9,6 @@ void setup()
     Serial.begin(9600);
     reinitialiserVariable();
     // Allumer les PIN pour la detection de couleur
-    pinMode(PinBLEU, OUTPUT);
-    pinMode(PinJAUNE, OUTPUT);
-    pinMode(PinROUGE, OUTPUT);
-    pinMode(PinVERT, OUTPUT);
     // pin mode pour les suiveur de ligne
     pinMode(CPT_LIGNE_1, INPUT);
     pinMode(CPT_LIGNE_2, INPUT);
@@ -22,7 +18,8 @@ void setup()
     pinMode(CPT_LIGNE_6, INPUT);
      pinMode(2,INPUT);
     attachInterrupt(0,buttonPress,RISING);
-    SetSteady(true);
+    MOTOR_SetSpeed(RIGHT,0);
+    MOTOR_SetSpeed(LEFT,0);
 }
 
 void prendreBallon()
@@ -80,17 +77,19 @@ void prendreBallon()
 
 void loop()
 {
+    SetSteady(false);
     delay(1500);
     while (!IsSteady())
     {
-        bool humainDetecter = false;
+        bool humainDetecter = SONAR_GetRange(1) < 100;
+        Serial.println(String(SONAR_GetRange(1)));
         if(SONAR_GetRange(1) < 100) 
         {
             humainDetecter =true;
         }
         else {
             delay(100);
-            humainDetecter = SONAR_GetRange(1) < 100;
+            humainDetecter = (SONAR_GetRange(1) < 100);
         }
 
         if(humainDetecter)
