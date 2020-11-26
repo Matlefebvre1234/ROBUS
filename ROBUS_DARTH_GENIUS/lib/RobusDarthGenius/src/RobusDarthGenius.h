@@ -24,12 +24,23 @@ General librairies for Darth Genius Robus
 #define PinBLEU 9
 #define PinROUGE 11
 #define PinVERT 13
-#define CPT_LIGNE_1 16
-#define CPT_LIGNE_2 17
-#define CPT_LIGNE_3 4
-#define CPT_LIGNE_4 7
-#define CPT_LIGNE_5 14
-#define CPT_LIGNE_6 15
+#define CPT_LIGNE_1 26
+#define CPT_LIGNE_2 28
+#define CPT_LIGNE_3 30
+#define CPT_LIGNE_4 32
+#define CPT_LIGNE_5 22
+#define CPT_LIGNE_6 24
+// Creer les variables pour le RFID
+#define Puce1 "3C B5 FC 22"
+#define Puce2 "5C 8C 24 22"
+#define Puce3 "4C D1 B2 21"
+#define Puce4 "07 83 D2 C6"
+#define Carte1 "49 2B 25 BD"
+#define Carte2 "79 89 60 B2"
+#define Carte3 "09 C8 55 B3"
+#define Carte4 "49 F9 71 B2"
+#define SS_PIN 53
+#define RST_PIN 5
 
 
 void reinitialiserVariable();
@@ -49,5 +60,8 @@ void SuivreLigne();
 void buttonPress();
 bool IsSteady();
 bool SetSteady(bool isSteady);
+bool CheckIntersection();
 void SetOriginalSpeed();
+int RFID();
+void SetRFID();
 #endif //RobusDarthGenius

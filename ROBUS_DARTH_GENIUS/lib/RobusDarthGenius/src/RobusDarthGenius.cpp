@@ -3,6 +3,8 @@
 #include <RobusDarthGenius.h>
 #include <Adafruit_TCS34725.h>
 #include "Arduino.h"
+#include <SPI.h>
+#include <MFRC522.h>
 
 
 bool steady = true;
@@ -63,8 +65,9 @@ void readCptLigne() {
     cptLigneRead5 = digitalRead(CPT_LIGNE_5);
     cptLigneRead6 = digitalRead(CPT_LIGNE_6);
 }
-void CheckIntersection() {
-    
+bool CheckIntersection() {
+    readCptLigne();
+    return (!cptLigneRead1 && !cptLigneRead2 && !cptLigneRead3 && !cptLigneRead4 && !cptLigneRead5 && !cptLigneRead6);
 }
 void SuivreLigne() {
     SetOriginalSpeed();
@@ -85,20 +88,6 @@ void SuivreLigne() {
     if (!cptLigneRead1)
         erreurLigne += cl1;
     // Virage de 90
-    if(!cptLigneRead1 && !cptLigneRead2 && !cptLigneRead3 && !cptLigneRead4 && cptLigneRead5 && cptLigneRead6)
-    {
-        MOTOR_SetSpeed(RIGHT, g_vit_motd);
-        MOTOR_SetSpeed(LEFT, g_vit_motg);
-        delay(1000);
-        Virage_2roue(90);
-    }
-    if(!cptLigneRead6 && !cptLigneRead5 && !cptLigneRead3 && !cptLigneRead4 && cptLigneRead1 && cptLigneRead2)
-    {
-        MOTOR_SetSpeed(RIGHT, g_vit_motd);
-        MOTOR_SetSpeed(LEFT, g_vit_motg);
-        delay(1000);
-        Virage_2roue(-90);
-    }
     if(cptLigneRead6 && cptLigneRead5 || cptLigneRead1 && cptLigneRead2) {
         float fac = 0.0975;
         g_vit_motg += erreurLigne*fac/2;
@@ -120,6 +109,10 @@ bool IsSteady() {
     return steady;
 }
 bool SetSteady(bool isSteady) {
+    if(isSteady) {
+        MOTOR_SetSpeed(RIGHT,0);
+        MOTOR_SetSpeed(LEFT,0);
+    }
     return steady = isSteady;
 }
 void SetOriginalSpeed() {
@@ -601,4 +594,79 @@ Adafruit_TCS34725 tcs = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_700MS, TCS347
     return BLEU;
   }
 
+}
+MFRC522 mfrc522;
+void SetRFID(){    
+    // Setup RFID
+    MFRC522 instanceMFRC(SS_PIN, RST_PIN);
+    mfrc522 = instanceMFRC;
+    SPI.begin();      // Initiate  SPI bus
+    mfrc522.PCD_Init();   // Initiate MFRC522
+}
+int RFID(){ // Create MFRC522 instance.
+    // Initiate a serial communication
+    Serial.println("Approximate your card to the reader...");
+    // Look for new cards
+  if ( ! mfrc522.PICC_IsNewCardPresent()) 
+  {
+    return;
+  }
+  // Select one of the cards
+  if ( ! mfrc522.PICC_ReadCardSerial()) 
+  {
+    return;
+  }
+  //Show UID on serial monitor
+  Serial.print("UID tag :");
+  String content= "";
+  for (byte i = 0; i < mfrc522.uid.size; i++) 
+  {
+     Serial.print(mfrc522.uid.uidByte[i] < 0x10 ? " 0" : " ");
+     Serial.print(mfrc522.uid.uidByte[i], HEX);
+     content.concat(String(mfrc522.uid.uidByte[i] < 0x10 ? " 0" : " "));
+     content.concat(String(mfrc522.uid.uidByte[i], HEX));
+  }
+  Serial.println();
+  Serial.print("Message : ");
+  content.toUpperCase();
+  if (content.substring(1) == Puce1) //change here the UID of the card/cards that you want to give access
+  {
+    Serial.println("Puce1");
+    Serial.println();
+    return 1;
+  }
+  else if (content.substring(1) == Puce2)
+  {
+    Serial.println("Puce2");
+    Serial.println();
+    return 2;
+  }
+ else if (content.substring(1) == Puce3)
+  {
+    Serial.println("Puce3");
+    Serial.println();
+    return 3;
+  }
+  else if (content.substring(1) == Carte1)
+  {
+    Serial.println("Carte1");
+    Serial.println();
+    return 1;
+  }
+  else if (content.substring(1) == Carte2)
+  {
+    Serial.println("Carte2");
+    Serial.println();
+    return 2;
+  }
+  else if (content.substring(1) == Carte3)
+  {
+    Serial.println("Carte3");
+    Serial.println();
+    return 3;
+  }
+ else   {
+    Serial.println(" Acces Denied");
+    return 0;
+  }
 }

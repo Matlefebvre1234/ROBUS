@@ -2,11 +2,14 @@
 #include <LibRobus.h>
 #include <MusiqueRobus.h>
 #include <RobusDarthGenius.h>
+#include <SPI.h>
+#include <MFRC522.h>
 void setup()
 {
     // BOILER PLATE SETUP
     BoardInit();
     Serial.begin(9600);
+    SetRFID();
     reinitialiserVariable();
     // Allumer les PIN pour la detection de couleur
     // pin mode pour les suiveur de ligne
@@ -16,8 +19,8 @@ void setup()
     pinMode(CPT_LIGNE_4, INPUT);
     pinMode(CPT_LIGNE_5, INPUT);
     pinMode(CPT_LIGNE_6, INPUT);
-     pinMode(2,INPUT);
-    attachInterrupt(0,buttonPress,RISING);
+    pinMode(3,INPUT);
+    attachInterrupt(1,buttonPress,RISING);
     MOTOR_SetSpeed(RIGHT,0);
     MOTOR_SetSpeed(LEFT,0);
 }
@@ -77,8 +80,12 @@ void prendreBallon()
 
 void loop()
 {
-    SetSteady(false);
+    SetSteady(true);
     delay(1500);
+    int doorCodeRFID = RFID();
+    Serial.println(String(doorCodeRFID));
+    if(doorCodeRFID == 1 ||doorCodeRFID == 2 ||doorCodeRFID == 3)
+        SetSteady(false);
     while (!IsSteady())
     {
         bool humainDetecter = SONAR_GetRange(1) < 100;
@@ -92,7 +99,21 @@ void loop()
             humainDetecter = (SONAR_GetRange(1) < 100);
         }
 
-        if(humainDetecter)
+        if(CheckIntersection()) {
+            MOTOR_SetSpeed(RIGHT,.1);
+            MOTOR_SetSpeed(LEFT, .1);
+            delay(1000);
+            switch (doorCodeRFID)
+            {
+                case 1:
+                    Virage_2roue(-90);
+                    break;
+                case 3:
+                    Virage_2roue(90);
+                    break;
+            }           
+        }
+        else if(humainDetecter)
         {
             SuivreLigne();
         }
