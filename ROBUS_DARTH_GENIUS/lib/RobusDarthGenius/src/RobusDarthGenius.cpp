@@ -3,6 +3,8 @@
 #include <RobusDarthGenius.h>
 #include <Adafruit_TCS34725.h>
 #include "Arduino.h"
+#include <SPI.h>
+#include <MFRC522.h>
 
 
 bool steady = true;
@@ -587,4 +589,77 @@ Adafruit_TCS34725 tcs = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_700MS, TCS347
     return BLEU;
   }
 
+}
+
+int RFID(){
+     // Setup RFID
+    MFRC522 mfrc522(SS_PIN, RST_PIN); // Create MFRC522 instance.
+    // Initiate a serial communication
+    SPI.begin();      // Initiate  SPI bus
+    mfrc522.PCD_Init();   // Initiate MFRC522
+    Serial.println("Approximate your card to the reader...");
+    Serial.begin(9600);
+    // Look for new cards
+  if ( ! mfrc522.PICC_IsNewCardPresent()) 
+  {
+    return;
+  }
+  // Select one of the cards
+  if ( ! mfrc522.PICC_ReadCardSerial()) 
+  {
+    return;
+  }
+  //Show UID on serial monitor
+  Serial.print("UID tag :");
+  String content= "";
+  for (byte i = 0; i < mfrc522.uid.size; i++) 
+  {
+     Serial.print(mfrc522.uid.uidByte[i] < 0x10 ? " 0" : " ");
+     Serial.print(mfrc522.uid.uidByte[i], HEX);
+     content.concat(String(mfrc522.uid.uidByte[i] < 0x10 ? " 0" : " "));
+     content.concat(String(mfrc522.uid.uidByte[i], HEX));
+  }
+  Serial.println();
+  Serial.print("Message : ");
+  content.toUpperCase();
+  if (content.substring(1) == Puce1) //change here the UID of the card/cards that you want to give access
+  {
+    Serial.println("Puce1");
+    Serial.println();
+    return 1;
+  }
+  else if (content.substring(1) == Puce2)
+  {
+    Serial.println("Puce2");
+    Serial.println();
+    return 2;
+  }
+ else if (content.substring(1) == Puce3)
+  {
+    Serial.println("Puce3");
+    Serial.println();
+    return 3;
+  }
+  else if (content.substring(1) == Carte1)
+  {
+    Serial.println("Carte1");
+    Serial.println();
+    return 4;
+  }
+  else if (content.substring(1) == Carte2)
+  {
+    Serial.println("Carte2");
+    Serial.println();
+    return 5;
+  }
+  else if (content.substring(1) == Carte3)
+  {
+    Serial.println("Carte3");
+    Serial.println();
+    return 6;
+  }
+ else   {
+    Serial.println(" Acces Denied");
+    return 0;
+  }
 }

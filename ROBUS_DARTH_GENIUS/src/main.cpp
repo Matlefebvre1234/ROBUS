@@ -2,6 +2,8 @@
 #include <LibRobus.h>
 #include <MusiqueRobus.h>
 #include <RobusDarthGenius.h>
+#include <SPI.h>
+#include <MFRC522.h>
 void setup()
 {
     // BOILER PLATE SETUP
