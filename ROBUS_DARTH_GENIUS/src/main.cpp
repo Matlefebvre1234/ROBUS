@@ -98,7 +98,6 @@ void loop()
             delay(100);
             humainDetecter = (SONAR_GetRange(1) < 100);
         }
-
         if(CheckIntersection()) {
             MOTOR_SetSpeed(RIGHT,.1);
             MOTOR_SetSpeed(LEFT, .1);

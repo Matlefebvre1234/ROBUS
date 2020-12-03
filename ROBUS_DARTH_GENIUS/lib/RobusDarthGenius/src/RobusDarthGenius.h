@@ -40,7 +40,7 @@ General librairies for Darth Genius Robus
 #define Carte3 "09 C8 55 B3"
 #define Carte4 "49 F9 71 B2"
 #define SS_PIN 53
-#define RST_PIN 5
+#define RST_PIN 10
 
 
 void reinitialiserVariable();
