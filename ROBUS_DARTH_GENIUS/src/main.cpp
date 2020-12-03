@@ -87,16 +87,18 @@ void loop()
     if(doorCodeRFID == 1 ||doorCodeRFID == 2 ||doorCodeRFID == 3)
         SetSteady(false);
     bool humainDetecter;
-    int step =0 ;
+    bool humain;
+    bool intersection;
     while (!IsSteady())
     {
-        if(step == 3) {
-            humainDetecter =SONAR_GetRange(1) < 100;
-            step = 0;
-        }
-        else
-            step++;
-        if(CheckIntersection()) {
+        intersection = false;
+            for(int i =0;i<3;i++)
+            {
+                if(CheckIntersection()) intersection = true;
+
+            }
+            
+        if(intersection) {
             MOTOR_SetSpeed(RIGHT,0);
             MOTOR_SetSpeed(LEFT,0);
             delay(2000);
@@ -127,14 +129,23 @@ void loop()
                     MOTOR_SetSpeed(LEFT, 0);
             }           
         }
-        else if(humainDetecter)
+        else 
         {
-            SuivreLigne();
-        }
-        else
-        {   
-            MOTOR_SetSpeed(RIGHT,0);
+             humain = false;
+            for(int i =0;i<2;i++)
+            {
+            humainDetecter = SONAR_GetRange(1) < 40;
+            Serial.print(humainDetecter);
+            if(humainDetecter) humain = true;
+             }
+            if(humain)SuivreLigne();
+            else
+            {
+             MOTOR_SetSpeed(RIGHT,0);
             MOTOR_SetSpeed(LEFT,0);
+            }
+            
         }
+     
     }
 }
