@@ -57,26 +57,25 @@ bool cptLigneRead4;
 bool cptLigneRead5;
 bool cptLigneRead6;
 
-void readCptLigne() {    
-    cptLigneRead1 = digitalRead(CPT_LIGNE_1);
+void readCptLigne() {
     cptLigneRead2 = digitalRead(CPT_LIGNE_2);
     cptLigneRead3 = digitalRead(CPT_LIGNE_3);
     cptLigneRead4 = digitalRead(CPT_LIGNE_4);
     cptLigneRead5 = digitalRead(CPT_LIGNE_5);
-    cptLigneRead6 = digitalRead(CPT_LIGNE_6);
+    Serial.println(" cpt 2: " + String(cptLigneRead2) + " cpt 3: " + String(cptLigneRead3) 
+            + " cpt 4: " + String(cptLigneRead4) + " cpt 5: " + String(cptLigneRead5));
 }
 bool CheckIntersection() {
-    readCptLigne();
-    return (!cptLigneRead1 && !cptLigneRead2 && !cptLigneRead3 && !cptLigneRead4 && !cptLigneRead5 && !cptLigneRead6);
+    cptLigneRead2 = digitalRead(CPT_LIGNE_2);
+    cptLigneRead3 = digitalRead(CPT_LIGNE_3);
+    cptLigneRead4 = digitalRead(CPT_LIGNE_4);
+    cptLigneRead5 = digitalRead(CPT_LIGNE_5);
+    return (!cptLigneRead2 && !cptLigneRead3 && !cptLigneRead4 && !cptLigneRead5);
 }
 void SuivreLigne() {
     SetOriginalSpeed();
     readCptLigne();
-    Serial.println("cpt 1: " + String(cptLigneRead1) + " cpt 2: " + String(cptLigneRead2) + " cpt 3: " + String(cptLigneRead3) 
-            + " cpt 4: " + String(cptLigneRead4) + " cpt 5: " + String(cptLigneRead5) + " cpt 6: " + String(cptLigneRead6));
     int erreurLigne = 0;
-    if (!cptLigneRead6)
-        erreurLigne += cl6;
     if (!cptLigneRead5)
         erreurLigne += cl5;
     if (!cptLigneRead4)
@@ -85,19 +84,17 @@ void SuivreLigne() {
         erreurLigne += cl3;
     if (!cptLigneRead2)
         erreurLigne += cl2;
-    if (!cptLigneRead1)
-        erreurLigne += cl1;
     // Virage de 90
-    if(cptLigneRead6 && cptLigneRead5 || cptLigneRead1 && cptLigneRead2) {
+    if(cptLigneRead5 && cptLigneRead2) {
         float fac = 0.0975;
         g_vit_motg += erreurLigne*fac/2;
         g_vit_motd -= erreurLigne*fac/2;
     }
-    else if(cptLigneRead6 || cptLigneRead1) {
+    /*else if(cptLigneRead5 || cptLigneRead2) {
         float fac = 0.135;
         g_vit_motg += erreurLigne*fac/2;
         g_vit_motd -= erreurLigne*fac/2;
-    } else {
+    }*/ else {
         float fac = 0.05;
         g_vit_motg += erreurLigne*fac/2;
         g_vit_motd -= erreurLigne*fac/2;
@@ -116,6 +113,7 @@ bool SetSteady(bool isSteady) {
     return steady = isSteady;
 }
 void SetOriginalSpeed() {
+
     g_vit_motd = g_vit_motd_Origin;
     g_vit_motg = g_vit_motg_Origin;
 }
@@ -322,9 +320,9 @@ void Avancer(long pulse)
 void buttonPress()
 { 
     //buttonON = !buttonON;
-    volatile static unsigned long last_interupt_time =0;
+    volatile static unsigned long last_interupt_time = 0;
     volatile unsigned long interruptsTime = millis();
-    bool ButtonHigh =false;
+    bool ButtonHigh = false;
     int i = 0;
     if(interruptsTime - last_interupt_time > 500)
     {
@@ -429,6 +427,7 @@ void Virage_2roue(float angle)
     LigneDroitePID2();
     while (abs(ENCODER_Read(roue_maitre)) <= pulse_distribution - abs(gt_dist_total_reelG_D[roue_maitre]))
     {
+        Serial.println(abs(ENCODER_Read(LEFT)));
         LigneDroitePID2();
     }
     MOTOR_SetSpeed(LEFT, 0);

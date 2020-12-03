@@ -26,7 +26,7 @@ General librairies for Darth Genius Robus
 #define PinVERT 13
 #define CPT_LIGNE_1 26
 #define CPT_LIGNE_2 28
-#define CPT_LIGNE_3 30
+#define CPT_LIGNE_3 37
 #define CPT_LIGNE_4 32
 #define CPT_LIGNE_5 22
 #define CPT_LIGNE_6 24
@@ -40,7 +40,7 @@ General librairies for Darth Genius Robus
 #define Carte3 "09 C8 55 B3"
 #define Carte4 "49 F9 71 B2"
 #define SS_PIN 53
-#define RST_PIN 10
+#define RST_PIN 35
 
 
 void reinitialiserVariable();
@@ -64,4 +64,5 @@ bool CheckIntersection();
 void SetOriginalSpeed();
 int RFID();
 void SetRFID();
+void readCptLigne();
 #endif //RobusDarthGenius

@@ -19,8 +19,8 @@ void setup()
     pinMode(CPT_LIGNE_4, INPUT);
     pinMode(CPT_LIGNE_5, INPUT);
     pinMode(CPT_LIGNE_6, INPUT);
-    pinMode(3,INPUT);
-    attachInterrupt(1,buttonPress,RISING);
+    pinMode(19,INPUT);
+    attachInterrupt(4,buttonPress,RISING);
     MOTOR_SetSpeed(RIGHT,0);
     MOTOR_SetSpeed(LEFT,0);
 }
@@ -86,30 +86,45 @@ void loop()
     Serial.println(String(doorCodeRFID));
     if(doorCodeRFID == 1 ||doorCodeRFID == 2 ||doorCodeRFID == 3)
         SetSteady(false);
+    bool humainDetecter;
+    int step =0 ;
     while (!IsSteady())
     {
-        bool humainDetecter = SONAR_GetRange(1) < 100;
-        Serial.println(String(SONAR_GetRange(1)));
-        if(SONAR_GetRange(1) < 100) 
-        {
-            humainDetecter =true;
+        if(step == 3) {
+            humainDetecter =SONAR_GetRange(1) < 100;
+            step = 0;
         }
-        else {
-            delay(100);
-            humainDetecter = (SONAR_GetRange(1) < 100);
-        }
+        else
+            step++;
         if(CheckIntersection()) {
-            MOTOR_SetSpeed(RIGHT,.1);
+            MOTOR_SetSpeed(RIGHT,0);
+            MOTOR_SetSpeed(LEFT,0);
+            delay(2000);
+            MOTOR_SetSpeed(RIGHT, .1);
             MOTOR_SetSpeed(LEFT, .1);
             delay(1000);
             switch (doorCodeRFID)
             {
                 case 1:
-                    Virage_2roue(-90);
+                    MOTOR_SetSpeed(RIGHT, -.1);
+                    MOTOR_SetSpeed(LEFT, .1);
+                    delay(2550);
+                    MOTOR_SetSpeed(RIGHT, 0);
+                    MOTOR_SetSpeed(LEFT, 0);
                     break;
                 case 3:
-                    Virage_2roue(90);
+                     MOTOR_SetSpeed(RIGHT, .1);
+                    MOTOR_SetSpeed(LEFT, -.1);
+                    delay(2550);
+                    MOTOR_SetSpeed(RIGHT, 0);
+                    MOTOR_SetSpeed(LEFT, 0);
                     break;
+                case 2:
+                    MOTOR_SetSpeed(RIGHT, .1);
+                    MOTOR_SetSpeed(LEFT, .1);
+                    delay(1000);
+                    MOTOR_SetSpeed(RIGHT, 0);
+                    MOTOR_SetSpeed(LEFT, 0);
             }           
         }
         else if(humainDetecter)
