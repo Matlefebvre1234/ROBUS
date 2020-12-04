@@ -72,6 +72,43 @@ bool CheckIntersection() {
     cptLigneRead5 = digitalRead(CPT_LIGNE_5);
     return (!cptLigneRead2 && !cptLigneRead3 && !cptLigneRead4 && !cptLigneRead5);
 }
+
+void SuivreLigneReculons() {
+    SetOriginalSpeed();
+    readCptLigne();
+    int erreurLigne = 0;
+    if (!cptLigneRead5)
+        erreurLigne += cl5;
+    if (!cptLigneRead4)
+        erreurLigne += cl4;
+    if (!cptLigneRead3)
+        erreurLigne += cl3;
+    if (!cptLigneRead2)
+        erreurLigne += cl2;
+    // Virage de 90
+    if(cptLigneRead5 && cptLigneRead2) {
+        float fac = -0.0975;
+        g_vit_motg += erreurLigne*fac/2;
+        g_vit_motd -= erreurLigne*fac/2;
+    }
+    /*else if(cptLigneRead5 || cptLigneRead2) {
+        float fac = 0.135;
+        g_vit_motg += erreurLigne*fac/2;
+        g_vit_motd -= erreurLigne*fac/2;
+    }*/ else {
+        float fac = -0.05;
+        g_vit_motg += erreurLigne*fac/2;
+        g_vit_motd -= erreurLigne*fac/2;
+    }
+    MOTOR_SetSpeed(RIGHT, g_vit_motg);
+    MOTOR_SetSpeed(LEFT, g_vit_motd);
+}
+
+
+
+
+
+
 void SuivreLigne() {
     SetOriginalSpeed();
     readCptLigne();

@@ -89,24 +89,37 @@ void loop()
     bool humainDetecter;
     bool humain;
     bool intersection;
+    int nBintersection =0;
     while (!IsSteady())
     {
         intersection = false;
             for(int i =0;i<3;i++)
             {
-                if(CheckIntersection()) intersection = true;
+                if(CheckIntersection()){ 
+                    intersection = true;
+                }
 
             }
             
         if(intersection) {
-            MOTOR_SetSpeed(RIGHT,0);
+            nBintersection ++;
+           
+            if(nBintersection == 2)
+            {
+                MOTOR_SetSpeed(RIGHT,0);
+                 MOTOR_SetSpeed(LEFT,0);
+                 delay(4000);
+            }
+            else if(nBintersection == 1 || nBintersection == 3)
+            {
+                 MOTOR_SetSpeed(RIGHT,0);
             MOTOR_SetSpeed(LEFT,0);
             delay(2000);
             MOTOR_SetSpeed(RIGHT, .1);
             MOTOR_SetSpeed(LEFT, .1);
             delay(1000);
-            switch (doorCodeRFID)
-            {
+                switch (doorCodeRFID)
+                {
                 case 1:
                     MOTOR_SetSpeed(RIGHT, -.1);
                     MOTOR_SetSpeed(LEFT, .1);
@@ -127,7 +140,24 @@ void loop()
                     delay(1000);
                     MOTOR_SetSpeed(RIGHT, 0);
                     MOTOR_SetSpeed(LEFT, 0);
-            }           
+                 }           
+
+
+
+            }
+        else if(nBintersection == 4)
+        {
+            MOTOR_SetSpeed(RIGHT, 0);
+            MOTOR_SetSpeed(LEFT, 0);
+            delay(1000);
+            MOTOR_SetSpeed(RIGHT, -.1);
+            MOTOR_SetSpeed(LEFT, .1);
+            delay(5100);
+            MOTOR_SetSpeed(RIGHT, 0);
+            MOTOR_SetSpeed(LEFT, 0);
+            nBintersection =0;
+            SetSteady(true);
+        }
         }
         else 
         {
@@ -136,9 +166,12 @@ void loop()
             {
             humainDetecter = SONAR_GetRange(1) < 40;
             Serial.print(humainDetecter);
+            
             if(humainDetecter) humain = true;
              }
+             humain =true;
             if(humain)SuivreLigne();
+            else if (nBintersection >= 1 && humain ) SuivreLigneReculons();
             else
             {
              MOTOR_SetSpeed(RIGHT,0);
