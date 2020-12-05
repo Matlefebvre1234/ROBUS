@@ -74,7 +74,8 @@ bool CheckIntersection() {
 }
 
 void SuivreLigneReculons() {
-    SetOriginalSpeed();
+    g_vit_motg = -.1;
+    g_vit_motd = -.1;
     readCptLigne();
     int erreurLigne = 0;
     if (!cptLigneRead5)
@@ -87,21 +88,21 @@ void SuivreLigneReculons() {
         erreurLigne += cl2;
     // Virage de 90
     if(cptLigneRead5 && cptLigneRead2) {
-        float fac = -0.0975;
-        g_vit_motg += erreurLigne*fac/2;
-        g_vit_motd -= erreurLigne*fac/2;
+        float fac = 0.0975;
+        g_vit_motg -= erreurLigne*fac/2;
+        g_vit_motd += erreurLigne*fac/2;
     }
     /*else if(cptLigneRead5 || cptLigneRead2) {
         float fac = 0.135;
         g_vit_motg += erreurLigne*fac/2;
         g_vit_motd -= erreurLigne*fac/2;
     }*/ else {
-        float fac = -0.05;
-        g_vit_motg += erreurLigne*fac/2;
-        g_vit_motd -= erreurLigne*fac/2;
+        float fac = 0.05;
+        g_vit_motg -= erreurLigne*fac/2;
+        g_vit_motd += erreurLigne*fac/2;
     }
-    MOTOR_SetSpeed(RIGHT, g_vit_motg);
-    MOTOR_SetSpeed(LEFT, g_vit_motd);
+    MOTOR_SetSpeed(RIGHT, g_vit_motd);
+    MOTOR_SetSpeed(LEFT, g_vit_motg );
 }
 
 
@@ -147,7 +148,8 @@ bool SetSteady(bool isSteady) {
         MOTOR_SetSpeed(RIGHT,0);
         MOTOR_SetSpeed(LEFT,0);
     }
-    return steady = isSteady;
+    steady = isSteady;
+    return steady;
 }
 void SetOriginalSpeed() {
 
@@ -639,18 +641,24 @@ void SetRFID(){
     SPI.begin();      // Initiate  SPI bus
     mfrc522.PCD_Init();   // Initiate MFRC522
 }
+
+void ResetRFID()
+{
+SPI.end();
+}
+
 int RFID(){ // Create MFRC522 instance.
     // Initiate a serial communication
     Serial.println("Approximate your card to the reader...");
     // Look for new cards
   if ( ! mfrc522.PICC_IsNewCardPresent()) 
   {
-    return;
+    return 0;
   }
   // Select one of the cards
   if ( ! mfrc522.PICC_ReadCardSerial()) 
   {
-    return;
+    return 0;
   }
   //Show UID on serial monitor
   Serial.print("UID tag :");

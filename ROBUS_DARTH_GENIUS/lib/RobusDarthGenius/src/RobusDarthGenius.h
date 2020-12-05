@@ -64,6 +64,7 @@ bool SetSteady(bool isSteady);
 bool CheckIntersection();
 void SetOriginalSpeed();
 int RFID();
+void ResetRFID();
 void SetRFID();
 void readCptLigne();
 #endif //RobusDarthGenius
