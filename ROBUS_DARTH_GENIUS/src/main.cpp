@@ -218,14 +218,15 @@ void loop()
         else 
         {
              humain = false;
-          /*  for(int i =0;i<2;i++)
+            for(int i =0;i<4;i++)
             {
             humainDetecter = SONAR_GetRange(1) < 40;
-            Serial.print(humainDetecter);
+           // Serial.print(humainDetecter);
             
             if(humainDetecter) humain = true;
-             }*/
-             humain =true;
+
+            }
+           
             if(humain)SuivreLigne();
             else
             {
