@@ -57,12 +57,14 @@ void testROBOT();
 int DetectionCouleur();
 void Virage_1roueDroite(float angle);
 void SuivreLigne();
+void SuivreLigneReculons();
 void buttonPress();
 bool IsSteady();
 bool SetSteady(bool isSteady);
 bool CheckIntersection();
 void SetOriginalSpeed();
 int RFID();
+void ResetRFID();
 void SetRFID();
 void readCptLigne();
 #endif //RobusDarthGenius

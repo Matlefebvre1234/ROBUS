@@ -9,7 +9,6 @@ void setup()
     // BOILER PLATE SETUP
     BoardInit();
     Serial.begin(9600);
-    SetRFID();
     reinitialiserVariable();
     // Allumer les PIN pour la detection de couleur
     // pin mode pour les suiveur de ligne
@@ -79,47 +78,76 @@ void prendreBallon()
 }
 
 void loop()
-{
+{   
+    int doorCodeRFID;
     SetSteady(true);
     delay(1500);
-    int doorCodeRFID = RFID();
+      Serial.println("Avant");
+     Serial.println(String(doorCodeRFID));
+    SetRFID();
+     doorCodeRFID = RFID();
+     Serial.println("apres");
     Serial.println(String(doorCodeRFID));
     if(doorCodeRFID == 1 ||doorCodeRFID == 2 ||doorCodeRFID == 3)
         SetSteady(false);
     bool humainDetecter;
     bool humain;
     bool intersection;
+    int nBintersection =0;
     while (!IsSteady())
     {
         intersection = false;
             for(int i =0;i<3;i++)
             {
-                if(CheckIntersection()) intersection = true;
+                if(CheckIntersection()){ 
+                    intersection = true;
+                }
 
             }
             
         if(intersection) {
-            MOTOR_SetSpeed(RIGHT,0);
+            nBintersection ++;
+           
+            if(nBintersection == 2)
+            {
+                MOTOR_SetSpeed(RIGHT,0);
+                 MOTOR_SetSpeed(LEFT,0);
+                 delay(1000);
+                  MOTOR_SetSpeed(RIGHT,-0.1);
+                 MOTOR_SetSpeed(LEFT,-0.1);
+                 delay(1000);
+                 MOTOR_SetSpeed(RIGHT, -.1);
+                    MOTOR_SetSpeed(LEFT, .1);
+                    delay(2550*2);
+
+
+                 
+            }
+            else if(nBintersection == 1)
+            {
+                 MOTOR_SetSpeed(RIGHT,0);
             MOTOR_SetSpeed(LEFT,0);
             delay(2000);
             MOTOR_SetSpeed(RIGHT, .1);
             MOTOR_SetSpeed(LEFT, .1);
             delay(1000);
-            switch (doorCodeRFID)
-            {
+                switch (doorCodeRFID)
+                {
                 case 1:
                     MOTOR_SetSpeed(RIGHT, -.1);
                     MOTOR_SetSpeed(LEFT, .1);
                     delay(2550);
-                    MOTOR_SetSpeed(RIGHT, 0);
-                    MOTOR_SetSpeed(LEFT, 0);
+                    MOTOR_SetSpeed(RIGHT, 0.1);
+                    MOTOR_SetSpeed(LEFT, 0.1);
+                    delay(1000);
                     break;
                 case 3:
                      MOTOR_SetSpeed(RIGHT, .1);
                     MOTOR_SetSpeed(LEFT, -.1);
                     delay(2550);
-                    MOTOR_SetSpeed(RIGHT, 0);
-                    MOTOR_SetSpeed(LEFT, 0);
+                   MOTOR_SetSpeed(RIGHT, 0.1);
+                    MOTOR_SetSpeed(LEFT, 0.1);
+                    delay(1000);
                     break;
                 case 2:
                     MOTOR_SetSpeed(RIGHT, .1);
@@ -127,22 +155,82 @@ void loop()
                     delay(1000);
                     MOTOR_SetSpeed(RIGHT, 0);
                     MOTOR_SetSpeed(LEFT, 0);
-            }           
+                 }           
+
+
+
+            }
+             else if( nBintersection == 3)
+            {
+                 MOTOR_SetSpeed(RIGHT,0);
+            MOTOR_SetSpeed(LEFT,0);
+            delay(2000);
+            MOTOR_SetSpeed(RIGHT, .1);
+            MOTOR_SetSpeed(LEFT, .1);
+            delay(1000);
+                switch (doorCodeRFID)
+                {
+                case 3:
+                    MOTOR_SetSpeed(RIGHT, -.1);
+                    MOTOR_SetSpeed(LEFT, .1);
+                    delay(2550);
+                  MOTOR_SetSpeed(RIGHT, 0.1);
+                    MOTOR_SetSpeed(LEFT, 0.1);
+                    delay(1000);
+                    break;
+                case 1:
+                     MOTOR_SetSpeed(RIGHT, .1);
+                    MOTOR_SetSpeed(LEFT, -.1);
+                    delay(2550);
+                    MOTOR_SetSpeed(RIGHT, 0.1);
+                    MOTOR_SetSpeed(LEFT, 0.1);
+                    delay(1000);
+                    break;
+                case 2:
+                    MOTOR_SetSpeed(RIGHT, .1);
+                    MOTOR_SetSpeed(LEFT, .1);
+                    delay(1000);
+                    MOTOR_SetSpeed(RIGHT, 0);
+                    MOTOR_SetSpeed(LEFT, 0);
+                 }           
+
+
+
+            }
+        else if(nBintersection == 4)
+        {
+            MOTOR_SetSpeed(RIGHT, 0);
+            MOTOR_SetSpeed(LEFT, 0);
+            delay(1000);
+            MOTOR_SetSpeed(RIGHT, -.1);
+            MOTOR_SetSpeed(LEFT, .1);
+            delay(5100);
+            MOTOR_SetSpeed(RIGHT, 0);
+            MOTOR_SetSpeed(LEFT, 0);
+            nBintersection =0;
+            SetSteady(true);
+            doorCodeRFID = 0;
+            ResetRFID();
+            break;
+        }
         }
         else 
         {
              humain = false;
-            for(int i =0;i<2;i++)
+          /*  for(int i =0;i<2;i++)
             {
             humainDetecter = SONAR_GetRange(1) < 40;
             Serial.print(humainDetecter);
+            
             if(humainDetecter) humain = true;
-             }
+             }*/
+             humain =true;
             if(humain)SuivreLigne();
             else
             {
              MOTOR_SetSpeed(RIGHT,0);
             MOTOR_SetSpeed(LEFT,0);
+
             }
             
         }
