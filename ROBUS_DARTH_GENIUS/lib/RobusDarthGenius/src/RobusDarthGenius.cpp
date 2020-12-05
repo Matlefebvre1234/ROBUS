@@ -383,8 +383,8 @@ void buttonPress()
         ButtonHigh = true;
         
         while(ButtonHigh)
-        {  Serial.print(analogRead(A0));
-            if(analogRead(A0)> 100) ButtonHigh = false;
+        {  Serial.print(analogRead(A1));
+            if(analogRead(A1)> 100) ButtonHigh = false;
         }
         
     }  

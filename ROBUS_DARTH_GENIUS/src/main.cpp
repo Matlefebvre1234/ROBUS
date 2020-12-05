@@ -18,8 +18,9 @@ void setup()
     pinMode(CPT_LIGNE_4, INPUT);
     pinMode(CPT_LIGNE_5, INPUT);
     pinMode(CPT_LIGNE_6, INPUT);
-    pinMode(19,INPUT);
-    attachInterrupt(4,buttonPress,RISING);
+    pinMode(3,INPUT);
+    pinMode(A1,INPUT);
+    attachInterrupt(1,buttonPress,RISING);
     MOTOR_SetSpeed(RIGHT,0);
     MOTOR_SetSpeed(LEFT,0);
 }
